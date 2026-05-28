@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>Anagrafica Pazienti</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+    ">
+
+        <h1>Anagrafica Pazienti</h1>
+
+        <button
+            class="btn-red"
+            style="width:220px;"
+            onclick="goBackDashboard()">
+
+            TORNA ALLA DASHBOARD
+
+        </button>
+
+    </div>
+
+    <!-- RICERCA -->
+	<div class="search-container">
+
+    		<input
+        		type="text"
+        		id="searchName"
+        		placeholder="Ricerca per Nome">
+
+    		<input
+        		type="text"
+        		id="searchSurname"
+        		placeholder="Ricerca per Cognome">
+
+    		<button
+        		class="btn-blue"
+        		onclick="filterPatients()">
+
+        		CERCA PAZIENTE
+
+    		</button>
+
+</div>
+    
+
+    <!-- TABELLA -->
+
+    <div class="table-container">
+
+        <table id="patientsTable">
+
+            <thead>
+
+                <tr>
+
+                    <th>ID</th>
+                    <th>NOME</th>
+                    <th>COGNOME</th>
+                    <th>DATA NASCITA</th>
+                    <th>SESSO</th>
+                    <th>TELEFONO</th>
+                    <th>E-MAIL</th>
+                    <th>CODICE FISCALE</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="patientsBody">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script src="PatientsRegistry.js"></script>
+
+</body>
+</html>

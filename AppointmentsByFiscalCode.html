@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>
+        Prenotazioni Paziente
+    </title>
+
+    <link
+    rel="stylesheet"
+    href="style.css">
+
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+   
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="dashboard-header">
+
+        <h1>
+            Prenotazioni Paziente
+        </h1>
+
+        <button
+            class="btn-red logout-btn"
+            onclick="goBackDashboard()">
+
+            TORNA DASHBOARD
+
+        </button>
+
+    </div>
+
+
+
+    <!-- TABELLA -->
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>ID</th>
+
+                    <th>CODICE FISCALE</th>
+
+                    <th>NOME</th>
+
+                    <th>COGNOME</th>
+
+                    <th>DATA</th>
+
+                    <th>ORA</th>
+
+                    <th>TIPO VISITA</th>
+
+                    <th>ELIMINA</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="appointmentsBody">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script src="AppointmentsByFiscalCode.js"></script>
+
+</body>
+</html>

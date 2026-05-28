@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>Visite Filtrate</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+    ">
+
+        <h1>Risultato Ricerca Visite</h1>
+
+        <button
+            class="btn-red"
+            style="width:220px;"
+            onclick="goBackDashboard()">
+
+            TORNA DASHBOARD
+
+        </button>
+
+    </div>
+
+<!-- DOWNLOAD -->
+
+<div class="download-buttons">
+
+    <button
+        class="btn-blue"
+        onclick="downloadPDF()">
+
+        ⬇️ DOWNLOAD PDF
+
+    </button>
+
+    <button
+        class="btn-purple"
+        onclick="downloadDOC()">
+
+        ⬇️ DOWNLOAD DOC
+
+    </button>
+
+</div>
+
+
+    <!-- TABELLA -->
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>ID</th>
+
+                    <th>TIPOLOGIA VISITA</th>
+
+                    <th>PAZIENTE</th>
+
+                    <th>MEDICO</th>
+
+                    <th>DATA</th>
+
+                    <th>ORA</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="appointmentsBody">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- jsPDF -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- jsPDF AUTOTABLE -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+
+<!-- FILE SAVER -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<script src="AppointmentsFiltered.js"></script>
+
+</body>
+</html>

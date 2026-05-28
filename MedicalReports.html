@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>Referti Medici</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+    ">
+
+        <h1>Referti Medici</h1>
+
+        <button
+            class="btn-red"
+            style="width:220px;"
+            onclick="goBackDashboard()">
+
+            TORNA ALLA DASHBOARD
+
+        </button>
+
+    </div>
+
+
+
+    <!-- CREA REFERTO -->
+
+    <div class="card">
+
+        <h3>Nuovo Referto</h3>
+
+        <input
+            type="number"
+            id="appointment_id"
+            placeholder="ID Visita">
+
+        <input
+            type="text"
+            id="diagnosis"
+            placeholder="Diagnosi">
+
+        <input
+            type="text"
+            id="therapy"
+            placeholder="Terapia">
+
+        <textarea
+            id="notes"
+            placeholder="Note Mediche"
+            rows="5"></textarea>
+
+        <button
+            class="btn-blue"
+            onclick="createReport()">
+
+            CREA REFERTO
+
+        </button>
+
+    </div>
+
+
+
+    <!-- RICERCA -->
+
+    <div class="search-container">
+
+        <input
+            type="number"
+            id="searchAppointmentId"
+            placeholder="Ricerca per ID Visita">
+
+        <button
+            class="btn-purple"
+            onclick="filterReports()">
+
+            CERCA REFERTO
+
+        </button>
+
+    </div>
+
+
+
+    <!-- TABELLA -->
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>ID REFERTO</th>
+
+                    <th>ID VISITA</th>
+
+                    <th>DATA</th>
+
+                    <th>TIPO VISITA</th>
+
+                    <th>PAZIENTE</th>
+
+                    <th>DOTTORE</th>
+
+                    <th>DIAGNOSI</th>
+
+                    <th>TERAPIA</th>
+
+                    <th>NOTE</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="reportsBody">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script src="MedicalReports.js"></script>
+
+</body>
+</html>

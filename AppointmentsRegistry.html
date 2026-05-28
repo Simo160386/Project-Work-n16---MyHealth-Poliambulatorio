@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>Registro Prenotazioni</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+    ">
+
+        <h1>Visite Prenotate</h1>
+
+        <button
+            class="btn-red"
+            style="width:220px;"
+            onclick="goBackDashboard()">
+
+            TORNA ALLA DASHBOARD
+
+        </button>
+
+    </div>
+
+    <!-- RICERCA -->
+	<div class="search-container">
+
+    		<input
+        		type="number"
+        		id="searchAppointmentId"
+        		placeholder="Inserisci ID Prenotazione">
+
+    		<button
+        		class="btn-purple"
+        		onclick="filterAppointments()">
+
+        	CERCA PRENOTAZIONE
+
+    		</button>
+
+</div>
+    
+
+    <!-- TABELLA -->
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>ID</th>
+
+                    <th>DATA</th>
+
+		    <th>DATA</th>
+
+                    <th>TIPO VISITA</th>
+
+                    <th>DOTTORE</th>
+
+                    <th>PAZIENTE</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="appointmentsBody">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script src="AppointmentsRegistry.js"></script>
+
+</body>
+</html>

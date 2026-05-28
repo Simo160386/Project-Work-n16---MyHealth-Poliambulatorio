@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nuovo Paziente</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Registrazione Paziente</h1>
+
+    <div class="card">
+
+        <input type="text" id="name" placeholder="Nome">
+
+        <input type="text" id="surname" placeholder="Cognome">
+
+        <label>Data di nascita</label>
+        <input type="date" id="birth_date">
+
+        <select id="gender">
+            <option value="">Seleziona sesso</option>
+            <option value="Maschio">Maschio</option>
+            <option value="Femmina">Femmina</option>
+            <option value="Altro">Altro</option>
+        </select>
+
+        <input type="text" id="phone" placeholder="Telefono">
+
+        <input type="email" id="email" placeholder="E-mail">
+
+        <input type="text"
+               id="fiscal_code"
+               placeholder="Codice Fiscale">
+
+        <button class="btn-blue"
+                onclick="createPatient()">
+            CREA PAZIENTE
+        </button>
+
+        <button class="btn-red"
+                onclick="goBackDashboard()">
+            TORNA ALLA DASHBOARD
+        </button>
+
+    </div>
+
+</div>
+
+<script src="patient.js"></script>
+
+</body>
+</html>

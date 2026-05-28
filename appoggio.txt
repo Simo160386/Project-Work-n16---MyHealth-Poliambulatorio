@@ -1,0 +1,234 @@
+align-items:center
+
+
+
+<div id="app" style="display:none;">
+
+    <div style="display:flex; justify-content:center; text-align:center;">
+        <h2>Dashboard</h2>
+
+        <button onclick="logout()"
+                class="btn-red"
+                style="width:180px;">
+            Logout
+        </button>
+    </div>
+
+    <div class="dashboard">
+
+
+
+@app.route('/api/patients', methods=['POST'])
+def create_patient():
+    data = request.json
+
+    if not data['name'] or not data['surname']:
+        return jsonify({"message": "Campi obbligatori"}), 400
+
+    patient = Patient(name=data['name'], surname=data['surname'])
+    db.session.add(patient)
+    db.session.commit()
+
+    return jsonify({"message": "Paziente creato!"})
+
+
+@app.route('/api/appointments', methods=['GET'])
+def get_appointments():
+    appointments = Appointment.query.all()
+
+    result = []
+    for a in appointments:
+        doctor = Doctor.query.get(a.doctor_id)
+        patient = Patient.query.get(a.patient_id)
+
+        result.append({
+	    "id" : a.id,
+            "date": a.date,
+            "patient_id": a.patient_id,
+            "doctor": doctor.name if doctor else "N/A",
+            "patient_name": patient.name if patient else "N/A",
+            "patient_surname": patient.surname if patient else "N/A"
+        })
+
+    return jsonify(result)
+
+
+
+
+
+
+function loadAppointments() {
+    fetch(API + "/api/appointments")
+    .then(res => res.json())
+    .then(data => {
+        const list = document.getElementById("appointments");
+        list.innerHTML = "";
+
+        data.forEach(a => {
+            const li = document.createElement("li");
+            li.textContent = `#${a.id} | ${a.date} - ${a.doctor} - ${a.patient\_name} ${a.patient\_surname}`;
+            list.appendChild(li);
+        });
+    });
+}
+
+
+ <button class="btn-purple" onclick="loadAppointments()">
+                    VISUALIZZA
+            </button>
+
+            <ul id="appointments"></ul>
+
+.then(data => alert(data.message));
+
+
+<button class="btn-blue"
+                    onclick="loadPatients()">
+                    VISUALIZZA
+            </button>
+
+            <ul id="patients"></ul>
+
+
+.then(data => alert(data.message));
+
+<input type="number"
+                   id="patient_id"
+                   placeholder="ID Paziente">
+
+
+const patient_id = document.getElementById("patient_id").value;
+
+
+
+
+
+
+
+
+
+
+
+
+
+ .catch(err => {
+
+        console.error(err);
+        alert("Errore caricamento prenotazioni");
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+fai un logo medico con la dicitura "my health poliambulatorio" --> FATTO
+
+
+
+ricerca paziente per cognome e CF
+
+visita dietologica --> FATTO
+visita pneumologica --> FATTO
+visita psichiatrica --> FATTO
+visita diabetologica --> FATTO
+visita allergologica --> FATTO
+visita chirurgica --> FATTO
+visita oncologica --> FATTO
+visita gastroenterologica --> FATTO
+visita reumatologica --> FATTO
+visita geriatrica --> FATTO
+visita nefrologica --> FATTO
+visita senologica --> FATTO
+
+Elimina Visita PEDIATRICA  --> FATTO
+
+
+-------------------------------------------------------------
+liste visite prenotate:
+filtrare per tipologia di visita e per data e ora  -->FATTO
+
+
+
+
+prenota visita:
+aggiungere campo "ora"                                -->FATTO
+modificare "dottore" con "medico"		      -->FATTO
+in ordine: paziente, tipo visita, medico, data, ora   -->FATTO
+
+
+
+
+elimina prenotazione:
+ricerca per ID prenotazione e per CF
+apre una lista di appuntamenti in altra schermata che viene selezionato ed eliminato --> FATTO
+la lista degli appuntamenti prevede: ID visita, CF, nome, cognome, data, ora, tipo visita -->FATTO
+
+
+
+
+
+REFERTI --> Possibilità di allegare un documento word editabile nell pagina di creazione referto.
+
+
+GESTIONE PRENOT -> PREVEDERE TASTO MODIFICA APP
+
+
+SELEZIONA TIPOLOGIA VISITA -> VISITA SPECIALISTICA --> FATTO
+
+
+referti medici - ricerca per cf id visita
+togliere dottore dalla tabella E SE POSSIBILE AGGIUNGERE CF
+
+NUOVO REFERTO - AGGIUNGERE NOME E COGNOME PAZIENTE
+                ELIMINARE DIAGNOSI E TERAPIA ED INSERIRLI NELL'ALLEGATO
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			

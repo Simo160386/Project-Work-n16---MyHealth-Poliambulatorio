@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Health Poliambulatorio</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- ===================================== -->
+        <!-- LOGIN -->
+        <!-- ===================================== -->
+
+        <div id="login-section">
+
+            <div class="login-wrapper">
+
+                <!-- PERSONALE SANITARIO -->
+
+                <div class="login-card">
+
+                    <h2>
+                        👨‍💼 Login Desk
+                    </h2>
+
+                    <input
+                        type="text"
+                        id="username_staff"
+                        placeholder="Username">
+
+                    <input
+                        type="password"
+                        id="password_staff"
+                        placeholder="Password">
+
+                    <button
+                        class="btn-blue"
+                        onclick="loginStaff()">
+
+                        ACCEDI
+
+                    </button>
+
+                </div>
+
+                <!-- MEDICO SPECIALISTA -->
+
+                <div class="login-card">
+
+                    <h2>
+                        👨‍⚕️ Login Medico
+                    </h2>
+
+                    <input
+                        type="text"
+                        id="username_doctor"
+                        placeholder="Cognome Medico">
+
+                    <input
+                        type="password"
+                        id="password_doctor"
+                        placeholder="Password">
+
+                    <button
+                        class="btn-green"
+                        onclick="loginDoctor()">
+
+                        ACCEDI
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- DASHBOARD STAFF -->
+        <!-- ===================================== -->
+
+        <div id="staff-dashboard" style="display:none;">
+
+            <!-- HEADER -->
+
+            <div class="dashboard-header">
+
+                <div class="logo-title">
+
+                    <img
+                        src="logo.png"
+                        alt="MyHealth Logo"
+                        class="logo">
+
+                    <h1>Dashboard Desk</h1>
+
+                </div>
+
+                <button
+                    onclick="logout()"
+                    class="btn-red logout-btn">
+
+                    Logout
+
+                </button>
+
+            </div>
+
+            <!-- CONTENUTO DASHBOARD -->
+
+            <div class="dashboard">
+
+                <!-- REGISTRAZIONE PAZIENTE -->
+
+                <div class="card">
+
+                    <h3>👤 Registrazione Paziente</h3>
+
+                    <p>
+                        Clicca su NUOVO PAZIENTE per
+                        registrare un nuovo paziente.
+                    </p>
+
+                    <button
+                        class="btn-blue"
+                        onclick="openPatientPage()">
+
+                        NUOVO PAZIENTE
+
+                    </button>
+
+                    <hr style="
+                        margin-top:25px;
+                        margin-bottom:25px;
+                    ">
+
+                    <!-- ANAGRAFICA -->
+
+                    <h3>🧾 Anagrafica Pazienti</h3>
+
+                    <p>
+                        Visualizza tutti i pazienti registrati
+                        con ricerca avanzata.
+                    </p>
+
+                    <button
+                        class="btn-purple"
+                        onclick="openPatientsPage()">
+
+                        VISUALIZZA
+
+                    </button>
+
+                </div>
+
+                <!-- PRENOTAZIONE -->
+
+                <div class="card">
+
+                    <h3>📅 Prenota Visita</h3>
+
+                    <!-- PAZIENTE -->
+
+                    <select id="patient_select">
+
+                        <option value="">
+                            Paziente
+                        </option>
+
+                    </select>
+
+                    <!-- TIPO VISITA -->
+
+                    <select id="description">
+
+                        <option value="">
+                            Seleziona Visita Specialistica
+                        </option>
+
+                        <option value="Visita Cardiologica">Visita Cardiologica</option>
+                        <option value="Visita Dermatologica">Visita Dermatologica</option>
+                        <option value="Visita Diabetologica">Visita Diabetologica</option>
+                        <option value="Visita Allergologica">Visita Allergologica</option>
+                        <option value="Visita Ortopedica">Visita Ortopedica</option>
+                        <option value="Visita Geriatrica">Visita Geriatrica</option>
+                        <option value="Visita Reumatologica">Visita Reumatologica</option>
+                        <option value="Visita Gastroenterologica">Visita Gastroenterologica</option>
+                        <option value="Visita Nefrologica">Visita Nefrologica</option>
+                        <option value="Visita Neurologica">Visita Neurologica</option>
+                        <option value="Visita Chirurgica">Visita Chirurgica</option>
+                        <option value="Visita Oculistica">Visita Oculistica</option>
+                        <option value="Visita Pneumologica">Visita Pneumologica</option>
+                        <option value="Visita Psichiatrica">Visita Psichiatrica</option>
+                        <option value="Visita Oncologica">Visita Oncologica</option>
+                        <option value="Visita Ginecologica">Visita Ginecologica</option>
+                        <option value="Visita Senologica">Visita Senologica</option>
+                        <option value="Visita Urologica">Visita Urologica</option>
+                        <option value="Visita Endocrinologica">Visita Endocrinologica</option>
+                        <option value="Visita Dietologica">Visita Dietologica</option>
+
+                    </select>
+
+                    <!-- MEDICO -->
+
+                    <select id="doctor_select">
+
+                        <option value="">
+                            Medico
+                        </option>
+
+                    </select>
+
+                    <!-- DATA -->
+
+                    <input type="date" id="date">
+
+                    <!-- ORARIO -->
+
+                    <select id="hour">
+
+                        <option value="">
+                            Orario
+                        </option>
+
+                        <option value="08:00">08:00</option>
+                        <option value="09:00">09:00</option>
+                        <option value="10:00">10:00</option>
+                        <option value="11:00">11:00</option>
+                        <option value="12:00">12:00</option>
+                        <option value="13:00">13:00</option>
+                        <option value="14:00">14:00</option>
+                        <option value="15:00">15:00</option>
+                        <option value="16:00">16:00</option>
+                        <option value="17:00">17:00</option>
+                        <option value="18:00">18:00</option>
+                        <option value="19:00">19:00</option>
+
+                    </select>
+
+                    <button
+                        class="btn-orange"
+                        onclick="createAppointment()">
+
+                        PRENOTA
+
+                    </button>
+
+                </div>
+
+                <!-- LISTA PRENOTAZIONI -->
+
+                <div class="card">
+
+                    <h3>📋 Lista Visite Prenotate</h3>
+
+                    <select id="filter_description">
+
+                        <option value="">
+                            Filtra per Tipologia
+                        </option>
+
+                        <option value="Visita Cardiologica">Visita Cardiologica</option>
+                        <option value="Visita Dermatologica">Visita Dermatologica</option>
+                        <option value="Visita Diabetologica">Visita Diabetologica</option>
+                        <option value="Visita Allergologica">Visita Allergologica</option>
+                        <option value="Visita Ortopedica">Visita Ortopedica</option>
+                        <option value="Visita Geriatrica">Visita Geriatrica</option>
+                        <option value="Visita Reumatologica">Visita Reumatologica</option>
+                        <option value="Visita Gastroenterologica">Visita Gastroenterologica</option>
+                        <option value="Visita Nefrologica">Visita Nefrologica</option>
+                        <option value="Visita Neurologica">Visita Neurologica</option>
+                        <option value="Visita Chirurgica">Visita Chirurgica</option>
+                        <option value="Visita Oculistica">Visita Oculistica</option>
+                        <option value="Visita Pneumologica">Visita Pneumologica</option>
+                        <option value="Visita Psichiatrica">Visita Psichiatrica</option>
+                        <option value="Visita Oncologica">Visita Oncologica</option>
+                        <option value="Visita Ginecologica">Visita Ginecologica</option>
+                        <option value="Visita Senologica">Visita Senologica</option>
+                        <option value="Visita Urologica">Visita Urologica</option>
+                        <option value="Visita Endocrinologica">Visita Endocrinologica</option>
+                        <option value="Visita Dietologica">Visita Dietologica</option>
+
+                    </select>
+
+                    <input
+                        type="date"
+                        id="filter_date">
+
+                    <select id="filter_hour">
+
+                        <option value="">
+                            Filtra per Orario
+                        </option>
+
+                        <option value="08:00">08:00</option>
+                        <option value="09:00">09:00</option>
+                        <option value="10:00">10:00</option>
+                        <option value="11:00">11:00</option>
+                        <option value="12:00">12:00</option>
+                        <option value="13:00">13:00</option>
+                        <option value="14:00">14:00</option>
+                        <option value="15:00">15:00</option>
+                        <option value="16:00">16:00</option>
+                        <option value="17:00">17:00</option>
+                        <option value="18:00">18:00</option>
+                        <option value="19:00">19:00</option>
+
+                    </select>
+
+                    <button
+                        class="btn-purple"
+                        onclick="openFilteredAppointmentsPage()">
+
+                        VISUALIZZA
+
+                    </button>
+
+                </div>
+
+
+                <!-- GESTIONE PRENOTAZIONI -->
+
+                <div class="card">
+
+                    <h3>🗑 Gestione Prenotazioni</h3>
+
+                    <input
+                        type="number"
+                        id="searchAppointmentId"
+                        placeholder="Ricerca per ID Prenotazione">
+
+                    <input
+                        type="text"
+                        id="searchFiscalCode"
+                        placeholder="Ricerca per Codice Fiscale">
+
+                    <button
+                        class="btn-red"
+                        onclick="searchAppointment()">
+
+                        CERCA PRENOTAZIONE
+
+                    </button>
+
+                    <div
+                        id="appointmentSearchResult"
+                        style="margin-top:20px;">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- DASHBOARD MEDICO -->
+        <!-- ===================================== -->
+
+        <div id="doctor-dashboard" style="display:none;">
+
+            <div class="dashboard-header">
+
+                <div class="logo-title">
+
+                    <img
+                        src="logo.png"
+                        class="logo">
+
+                    <h1>
+                        Dashboard Medico
+                    </h1>
+
+                </div>
+
+                <button
+                    onclick="logout()"
+                    class="btn-red logout-btn">
+
+                    Logout
+
+                </button>
+
+            </div>
+
+            <div class="dashboard">
+
+                
+			<!-- LISTA VISITE PRENOTATE -->
+
+<div class="card">
+
+    <h3>
+        📋 Lista Visite Prenotate
+    </h3>
+
+    <!-- FILTRO TIPO VISITA -->
+
+    <select id="doctor_filter_description">
+
+        <option value="">
+            Filtra per Tipologia
+        </option>
+
+        <option value="Visita Cardiologica">
+            Visita Cardiologica
+        </option>
+
+        <option value="Visita Dermatologica">
+            Visita Dermatologica
+        </option>
+
+        <option value="Visita Diabetologica">
+            Visita Diabetologica
+        </option>
+
+        <option value="Visita Allergologica">
+            Visita Allergologica
+        </option>
+
+        <option value="Visita Ortopedica">
+            Visita Ortopedica
+        </option>
+
+        <option value="Visita Geriatrica">
+            Visita Geriatrica
+        </option>
+
+        <option value="Visita Reumatologica">
+            Visita Reumatologica
+        </option>
+
+        <option value="Visita Gastroenterologica">
+            Visita Gastroenterologica
+        </option>
+
+        <option value="Visita Nefrologica">
+            Visita Nefrologica
+        </option>
+
+        <option value="Visita Neurologica">
+            Visita Neurologica
+        </option>
+
+        <option value="Visita Chirurgica">
+            Visita Chirurgica
+        </option>
+
+        <option value="Visita Oculistica">
+            Visita Oculistica
+        </option>
+
+        <option value="Visita Pneumologica">
+            Visita Pneumologica
+        </option>
+
+        <option value="Visita Psichiatrica">
+            Visita Psichiatrica
+        </option>
+
+        <option value="Visita Oncologica">
+            Visita Oncologica
+        </option>
+
+        <option value="Visita Ginecologica">
+            Visita Ginecologica
+        </option>
+
+        <option value="Visita Senologica">
+            Visita Senologica
+        </option>
+
+        <option value="Visita Urologica">
+            Visita Urologica
+        </option>
+
+        <option value="Visita Endocrinologica">
+            Visita Endocrinologica
+        </option>
+
+        <option value="Visita Dietologica">
+            Visita Dietologica
+        </option>
+
+    </select>
+
+    <!-- FILTRO DATA -->
+
+    <input
+        type="date"
+        id="doctor_filter_date">
+
+    <!-- FILTRO ORARIO -->
+
+    <select id="doctor_filter_hour">
+
+        <option value="">
+            Filtra per Orario
+        </option>
+
+        <option value="08:00">08:00</option>
+        <option value="09:00">09:00</option>
+        <option value="10:00">10:00</option>
+        <option value="11:00">11:00</option>
+        <option value="12:00">12:00</option>
+        <option value="13:00">13:00</option>
+        <option value="14:00">14:00</option>
+        <option value="15:00">15:00</option>
+        <option value="16:00">16:00</option>
+        <option value="17:00">17:00</option>
+        <option value="18:00">18:00</option>
+        <option value="19:00">19:00</option>
+
+    </select>
+
+    <button
+        class="btn-purple"
+        onclick="openDoctorFilteredAppointmentsPage()">
+
+        VISUALIZZA
+
+    </button>
+
+</div>
+                
+
+                <!-- REFERTI -->
+
+                <div class="card">
+
+                    <h3>
+                        🩺 Referti Medici
+                    </h3>
+
+                    <button
+                        class="btn-orange"
+                        onclick="window.location.href='MedicalReports.html'">
+
+                        APRI
+
+                    </button>
+
+                </div>
+
+                <!-- ANAGRAFICA -->
+
+                <div class="card">
+
+                    <h3>
+                        👥 Anagrafica Pazienti
+                    </h3>
+
+                    <button
+                        class="btn-blue"
+                        onclick="window.location.href='PatientsRegistry.html'">
+
+                        VISUALIZZA
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+
+</body>
+
+</html>
