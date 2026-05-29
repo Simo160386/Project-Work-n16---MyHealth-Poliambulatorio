@@ -219,6 +219,24 @@ NUOVO REFERTO - AGGIUNGERE NOME E COGNOME PAZIENTE
 
 
 
+<td>
+
+    			<button
+        			class="edit-icon-btn"
+        			onclick="toggleEditForm(${a.id})">
+
+        		<i class="fa-solid fa-pen"></i>
+
+    			</button>
+
+		</td>
+
+
+
+
+
+
+
 
 
 

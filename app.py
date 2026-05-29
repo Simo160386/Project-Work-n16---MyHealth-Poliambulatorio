@@ -1,8 +1,3 @@
-__pycache__/
-*.pyc
-.ipynb_checkpoints/
-venv/
-.env
 
 #IMPORT LIBRERIE
 
@@ -255,6 +250,39 @@ def create_appointment():
 
     return jsonify({
         "message": "Prenotazione effettuata!"
+    })
+
+
+# MODIFICA PRENOTAZIONE
+
+@app.route(
+    "/api/appointments/<int:id>",
+    methods=["PUT"]
+)
+def update_appointment(id):
+
+    appointment = Appointment.query.get(id)
+
+    if not appointment:
+
+        return jsonify({
+            "message": "Prenotazione non trovata"
+        }), 404
+
+    data = request.json
+
+    appointment.date = data.get("date")
+
+    appointment.hour = data.get("hour")
+
+    db.session.commit()
+
+    return jsonify({
+
+        "success": True,
+
+        "message":
+        "Prenotazione modificata con successo"
     })
 
 

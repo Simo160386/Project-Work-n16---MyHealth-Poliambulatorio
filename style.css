@@ -500,3 +500,221 @@ tr:hover {
 
     transform: scale(1.08);
 }
+
+/* ACTION BUTTONS */
+
+.appointment-actions {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 20px;
+
+    margin-top: 20px;
+}
+
+/* EDIT BUTTON */
+
+.edit-icon-btn {
+
+    width: 55px !important;
+
+    height: 55px !important;
+
+    min-width: 55px;
+
+    min-height: 55px;
+
+    border-radius: 50% !important;
+
+    border: none;
+
+    background: #ff9800 !important;
+
+    color: white;
+
+    display: flex !important;
+
+    align-items: center;
+
+    justify-content: center;
+
+    cursor: pointer;
+
+    transition: 0.3s;
+
+    padding: 0 !important;
+}
+
+.edit-icon-btn i {
+
+    font-size: 18px;
+}
+
+.edit-icon-btn:hover {
+
+    transform: scale(1.08);
+
+    background: #e68900 !important;
+}
+
+/* ACTION BUTTONS */
+
+.appointment-actions {
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    gap: 15px;
+
+    margin-top: 25px;
+}
+
+/* EDIT BUTTON */
+
+.edit-icon-btn {
+
+    width: 55px !important;
+
+    height: 55px !important;
+
+    min-width: 55px;
+
+    min-height: 55px;
+
+    border-radius: 50% !important;
+
+    border: none;
+
+    background: #ff9800 !important;
+
+    color: white;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    cursor: pointer;
+
+    transition: 0.3s;
+}
+
+.edit-icon-btn:hover {
+
+    transform: scale(1.08);
+
+    background: #e68900 !important;
+}
+
+.edit-icon-btn i {
+
+    font-size: 18px;
+}
+
+/* CONTENITORE BOTTONI */
+
+.appointment-actions {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 60px;
+
+    margin-top: 25px;
+}
+
+
+/* BLOCCO ICONA + TESTO */
+
+.action-item {
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+
+/* TESTO SOTTO ICONA */
+
+.action-label {
+
+    font-size: 13px;
+
+    font-weight: bold;
+
+    color: #333;
+
+    text-align: center;
+}
+
+.appointment-actions {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 60px;
+
+    margin-top: 25px;
+}
+
+.action-item {
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+.action-label {
+
+    font-size: 13px;
+
+    font-weight: bold;
+
+    color: #444;
+
+    text-align: center;
+}
+
+.edit-icon-btn {
+
+    width: 60px;
+
+    height: 60px;
+
+    border-radius: 50%;
+
+    border: none;
+
+    background: #ff9800;
+
+    color: white;
+
+    cursor: pointer;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+}
+
+.edit-icon-btn i {
+
+    font-size: 20px;
+}

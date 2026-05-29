@@ -561,123 +561,90 @@ function searchAppointment() {
             }
 	   container.innerHTML = `
 
-<div class="appointment-result">
+    <div class="appointment-result">
 
-    <p><strong>ID:</strong> ${appointment.id}</p>
+        <p>
 
-    <p>
-        <strong>Paziente:</strong>
-        ${appointment.patient_name}
-        ${appointment.patient_surname}
-    </p>
+            <strong>ID:</strong>
+            ${appointment.id}
 
-    <p>
-        <strong>Medico:</strong>
-        ${appointment.doctor}
-    </p>
+        </p>
 
-    <p>
-        <strong>Visita:</strong>
-        ${appointment.description}
-    </p>
+        <p>
 
-    <p>
-        <strong>Data:</strong>
-        ${appointment.date}
-    </p>
+            <strong>Paziente:</strong>
 
-    <p>
-        <strong>Ora:</strong>
-        ${appointment.hour}
-    </p>
+            ${appointment.patient_name}
+            ${appointment.patient_surname}
 
-    <!-- FORM NASCOSTO -->
+        </p>
 
-    <div
-        id="editForm_${appointment.id}"
-        style="display:none; margin-top:20px;">
+        <p>
 
-        <input
-            type="date"
-            id="editDate_${appointment.id}">
+            <strong>Medico:</strong>
 
-        <select
-            id="editHour_${appointment.id}">
+            ${appointment.doctor}
 
-            <option value="">
-                Seleziona Orario
-            </option>
+        </p>
 
-            <option value="08:00">08:00</option>
-            <option value="09:00">09:00</option>
-            <option value="10:00">10:00</option>
-            <option value="11:00">11:00</option>
-            <option value="12:00">12:00</option>
-            <option value="13:00">13:00</option>
-            <option value="14:00">14:00</option>
-            <option value="15:00">15:00</option>
-            <option value="16:00">16:00</option>
-            <option value="17:00">17:00</option>
-            <option value="18:00">18:00</option>
-            <option value="19:00">19:00</option>
+        <p>
 
-        </select>
+            <strong>Visita:</strong>
 
-        <button
-            class="btn-orange"
-            onclick="updateAppointment(${appointment.id})">
+            ${appointment.description}
 
-            SALVA MODIFICA
+        </p>
 
-        </button>
+        <p>
 
-    </div>
+            <strong>Data:</strong>
 
-    <!-- BOTTONI -->
+            ${appointment.date}
 
-<div class="appointment-actions">
+        </p>
 
-   	<div class="action-item">
+        <p>
 
-        <button
-            class="edit-icon-btn"
-            onclick="toggleEditForm(${appointment.id})"
-            title="Modifica Prenotazione">
+            <strong>Ora:</strong>
 
-            <i class="fa-solid fa-pen"></i>
+            ${appointment.hour}
 
-        </button>
+        </p>
 
-        <span class="action-label">
-            MODIFICA DATA/ORA
-        </span>
+	<div class="appointment-actions">
+
+    		<button
+        		class="edit-icon-btn"
+        		onclick="
+            			updateAppointment(
+                		${appointment.id}
+           			 )
+        		"
+        		title="Modifica Prenotazione">
+
+        		<i class="fa-solid fa-pen"></i>
+
+   	</button>
+
+    	<button
+        	class="delete-icon-btn"
+        	onclick="
+           		deleteAppointment(
+                		${appointment.id}
+            		)
+        	"
+        	title="Elimina Prenotazione">
+
+        	<i class="fa-solid fa-trash"></i>
+
+    	</button>
+
+	</div>
+        
 
     </div>
-
-    <div class="action-item">
-
-        <button
-            class="delete-icon-btn"
-            onclick="deleteAppointment(${appointment.id})"
-            title="Elimina Prenotazione">
-
-            <i class="fa-solid fa-trash"></i>
-
-        </button>
-
-        <span class="action-label">
-            ELIMINA
-        </span>
-
-    </div>
-
-</div>
-    
-
-</div>
 `;
-
-	       
+            
         });
 
         return;
@@ -901,115 +868,4 @@ function openDoctorFilteredAppointmentsPage() {
 
     window.location.href =
         "AppointmentsFiltered.html";
-}
-
-// MOSTRA FORM MODIFICA
-
-function showEditForm(id) {
-
-    const form =
-        document.getElementById(
-            `editForm_${id}`
-        );
-
-    if (form.style.display === "none") {
-
-        form.style.display = "block";
-
-    } else {
-
-        form.style.display = "none";
-    }
-}
-
-
-
-// MODIFICA PRENOTAZIONE
-
-
-function updateAppointment(id) {
-
-    const rawDate =
-        document.getElementById(
-            `editDate_${id}`
-        ).value;
-
-    const hour =
-        document.getElementById(
-            `editHour_${id}`
-        ).value;
-
-    if (!rawDate || !hour) {
-
-        alert(
-            "Inserisci data e orario"
-        );
-
-        return;
-    }
-
-    const parts = rawDate.split("-");
-
-    const formattedDate =
-        `${parts[2]}/${parts[1]}/${parts[0]}`;
-
-    fetch(
-
-        API + "/api/appointments/" + id,
-
-        {
-
-            method: "PUT",
-
-            headers: {
-
-                "Content-Type":
-                "application/json"
-            },
-
-            body: JSON.stringify({
-
-                date: formattedDate,
-
-                hour: hour
-            })
-        }
-    )
-
-    .then(res => res.json())
-
-    .then(data => {
-
-        alert(data.message);
-
-        searchAppointment();
-    })
-
-    .catch(err => {
-
-        console.error(err);
-
-        alert(
-            "Errore modifica prenotazione"
-        );
-    });
-}
-
-// SHOW/HIDE FORM MODIFICA
-
-function toggleEditForm(id) {
-
-    const form =
-        document.getElementById(
-            `editForm_${id}`
-        );
-
-    if (form.style.display === "none") {
-
-        form.style.display = "block";
-
-    } else {
-
-        form.style.display = "none";
-    }
 }
