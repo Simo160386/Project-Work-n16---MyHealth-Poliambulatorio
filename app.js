@@ -394,34 +394,20 @@ function createAppointment() {
     const rawDate =
         document.getElementById("date").value;
 
-    const parts =
-        rawDate.split("-");
-
-    const date =
-        `${parts[2]}/${parts[1]}/${parts[0]}`;
-
     const hour =
-        document.getElementById(
-            "hour"
-        ).value;
+        document.getElementById("hour").value;
 
     const description =
-        document.getElementById(
-            "description"
-        ).value;
+        document.getElementById("description").value;
 
     const patient_id =
-        document.getElementById(
-            "patient_select"
-        ).value;
+        document.getElementById("patient_select").value;
 
     const doctor_id =
-        document.getElementById(
-            "doctor_select"
-        ).value;
+        document.getElementById("doctor_select").value;
 
     if (
-        !date ||
+        !rawDate ||
         !hour ||
         !description ||
         !patient_id ||
@@ -432,6 +418,12 @@ function createAppointment() {
 
         return;
     }
+
+    const parts = rawDate.split("-");
+
+    const date =
+        `${parts[2]}/${parts[1]}/${parts[0]}`;
+
 
     fetch(API + "/api/appointments", {
 

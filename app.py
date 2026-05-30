@@ -77,6 +77,10 @@ class MedicalReport(db.Model):
 
     appointment_id = db.Column(db.Integer)
 
+    name = db.Column(db.String(100))
+
+    surname = db.Column(db.String(100))
+
     fiscal_code = db.Column(db.String(16))
 
     attachment = db.Column(db.String(255))
@@ -89,6 +93,7 @@ class MedicalReport(db.Model):
 
 
 # LOGIN
+
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -127,6 +132,7 @@ def login():
 
 
 # CREATE PATIENT
+
 
 @app.route('/api/patients', methods=['POST'])
 def create_patient():
@@ -203,6 +209,7 @@ def create_patient():
 
 # GET DOCTORS
 
+
 @app.route('/api/doctors', methods=['GET'])
 def get_doctors():
     doctors = Doctor.query.all()
@@ -211,6 +218,7 @@ def get_doctors():
 
 
 # CREATE APPOINTMENT
+
 
 @app.route('/api/appointments', methods=['POST'])
 def create_appointment():
@@ -258,6 +266,7 @@ def create_appointment():
 
 
 # MODIFICA PRENOTAZIONE
+
 
 @app.route(
     "/api/appointments/<int:id>",
@@ -434,11 +443,20 @@ def get_appointments_by_fiscal_code(
 
 #CREATE REPORT
 
+
 @app.route('/api/reports', methods=['POST'])
 def create_report():
 
     appointment_id = request.form.get(
         "appointment_id"
+    )
+
+    patient_name = request.form.get(
+        "patient_name"
+    )
+
+    patient_surname = request.form.get(
+        "patient_surname"
     )
 
     fiscal_code = request.form.get(
@@ -453,8 +471,12 @@ def create_report():
         "attachment"
     )
 
+    # CONTROLLI CAMPI OBBLIGATORI
+
     if (
         not appointment_id or
+        not patient_name or
+        not patient_surname or
         not fiscal_code
     ):
 
@@ -463,16 +485,86 @@ def create_report():
             "Compila tutti i campi obbligatori"
         }), 400
 
+    # CONTROLLO VISITA ESISTENTE
+
+    appointment = Appointment.query.get(
+        appointment_id
+    )
+
+    if not appointment:
+
+        return jsonify({
+            "message":
+            "ID Visita non presente nel sistema"
+        }), 400
+
+    # CONTROLLO REFERTO DUPLICATO
+
+    existing_report = MedicalReport.query.filter_by(
+        appointment_id=appointment_id
+    ).first()
+
+    if existing_report:
+
+        return jsonify({
+            "message":
+            "Referto già presente per questa visita"
+        }), 409
+
+    # CONTROLLO PAZIENTE ASSOCIATO ALLA VISITA
+
+    patient = Patient.query.get(
+        appointment.patient_id
+    )
+
+    if not patient:
+
+        return jsonify({
+            "message":
+            "Paziente non trovato"
+        }), 404
+
+    # CONTROLLO NOME
+
+    if patient.name.strip().lower() != \
+       patient_name.strip().lower():
+
+        return jsonify({
+            "message":
+            "Nome paziente non coerente con la visita"
+        }), 400
+
+    # CONTROLLO COGNOME
+
+    if patient.surname.strip().lower() != \
+       patient_surname.strip().lower():
+
+        return jsonify({
+            "message":
+            "Cognome paziente non coerente con la visita"
+        }), 400
+
+    # CONTROLLO CODICE FISCALE
+
+    if patient.fiscal_code.strip().upper() != \
+       fiscal_code.strip().upper():
+
+        return jsonify({
+            "message":
+            "Codice fiscale non coerente con la visita"
+        }), 400
+
+    # UPLOAD FILE
+
     filename = ""
 
-    if file:
+    if file and file.filename != "":
 
         filename = secure_filename(
             file.filename
         )
 
         file.save(
-
             os.path.join(
                 app.config["UPLOAD_FOLDER"],
                 filename
@@ -482,6 +574,10 @@ def create_report():
     report = MedicalReport(
 
         appointment_id=appointment_id,
+
+        name=patient_name,
+
+        surname=patient_surname,
 
         fiscal_code=fiscal_code,
 
@@ -503,6 +599,8 @@ def create_report():
 
 
 # GET REPORTS
+
+
 
 @app.route('/api/reports', methods=['GET'])
 def get_reports():
@@ -561,21 +659,12 @@ def get_reports():
     return jsonify(result)
 
 
-
-
-
-
-
-
-
 # INITIALIZATION DB + DATI DI DEFAULT
 if __name__ == "__main__":
 
     with app.app_context():
 
         db.create_all()
-
-
 
         # =========================
         # PERSONALE SANITARIO
@@ -599,8 +688,6 @@ if __name__ == "__main__":
                 )
             )
 
-
-
         # =========================
         # MEDICI SPECIALISTI
         # =========================
@@ -614,15 +701,11 @@ if __name__ == "__main__":
             "verdi"
         ]
 
-
-
         for specialist in specialists:
 
             existing = User.query.filter_by(
                 username=specialist
             ).first()
-
-
 
             if not existing:
 
@@ -638,8 +721,6 @@ if __name__ == "__main__":
                     )
                 )
 
-
-
         # =========================
         # CREA MEDICI
         # =========================
@@ -648,17 +729,20 @@ if __name__ == "__main__":
 
             db.session.add_all([
 
-                Doctor(name="Dr. Rossi"),
+                Doctor(name="Rossi"),
 
-                Doctor(name="Dr. Bianchi"),
+                Doctor(name="Bianchi"),
 
-                Doctor(name="Dr. Verdi")
+                Doctor(name="Verdi")
             ])
-
-
 
         db.session.commit()
 
-
-
     app.run(debug=True)
+
+
+
+
+
+
+

@@ -7,6 +7,8 @@ window.onload = function () {
 
 
 
+
+
 // CREATE REPORT
 
 function createReport() {
@@ -15,6 +17,16 @@ function createReport() {
         document.getElementById(
             "appointment_id"
         ).value;
+
+    const patient_name =
+        document.getElementById(
+            "patient_name"
+        ).value.trim();
+
+    const patient_surname =
+        document.getElementById(
+            "patient_surname"
+        ).value.trim();
 
     const fiscal_code =
         document.getElementById(
@@ -33,6 +45,8 @@ function createReport() {
 
     if (
         !appointment_id ||
+        !patient_name ||
+        !patient_surname ||
         !fiscal_code
     ) {
 
@@ -49,6 +63,16 @@ function createReport() {
     formData.append(
         "appointment_id",
         appointment_id
+    );
+
+    formData.append(
+        "patient_name",
+        patient_name
+    );
+
+    formData.append(
+        "patient_surname",
+        patient_surname
     );
 
     formData.append(
@@ -76,11 +100,47 @@ function createReport() {
         body: formData
     })
 
-    .then(res => res.json())
+    .then(async res => {
 
-    .then(data => {
+        const data =
+            await res.json();
 
-        alert(data.message);
+        if (!res.ok) {
+
+            alert(
+                data.message
+            );
+
+            return;
+        }
+
+        alert(
+            data.message
+        );
+
+        document.getElementById(
+            "appointment_id"
+        ).value = "";
+
+        document.getElementById(
+            "patient_name"
+        ).value = "";
+
+        document.getElementById(
+            "patient_surname"
+        ).value = "";
+
+        document.getElementById(
+            "fiscal_code"
+        ).value = "";
+
+        document.getElementById(
+            "notes"
+        ).value = "";
+
+        document.getElementById(
+            "attachment"
+        ).value = "";
 
         loadReports();
     })
@@ -94,6 +154,8 @@ function createReport() {
         );
     });
 }
+
+
 
 
 // LOAD REPORTS
@@ -212,10 +274,10 @@ function filterReports() {
             .trim();
 
         const fiscalCode =
-            cells[5]
-            .textContent
-            .trim()
-            .toUpperCase();
+    		cells[6]
+    		.textContent
+    		.trim()
+    		.toUpperCase();
 
         let visible = true;
 
