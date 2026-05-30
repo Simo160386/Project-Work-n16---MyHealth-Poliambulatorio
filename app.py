@@ -70,6 +70,11 @@ class Appointment(db.Model):
 
     doctor_id = db.Column(db.Integer)
 
+    status = db.Column(
+        db.String(20),
+        default="Prenotata"
+    )
+
 
 class MedicalReport(db.Model):
 
@@ -245,16 +250,18 @@ def create_appointment():
 
     appointment = Appointment(
 
-    	date=date,
+    date=date,
 
-    	hour=hour,
+    hour=hour,
 
-    	description=description,
+    description=description,
 
-    	patient_id=patient_id,
+    patient_id=patient_id,
 
-    	doctor_id=doctor_id
-	)
+    doctor_id=doctor_id,
+
+    status="Prenotata"
+)
 
     db.session.add(appointment)
 
@@ -321,12 +328,64 @@ def get_patients():
 ])
 
 
+# UPDATE PATIENT
+
+@app.route(
+    '/api/patients/<int:id>',
+    methods=['PUT']
+)
+def update_patient(id):
+
+    patient = Patient.query.get(id)
+
+    if not patient:
+
+        return jsonify({
+            "message":
+            "Paziente non trovato"
+        }), 404
+
+    data = request.json
+
+    patient.birth_date = data.get(
+        "birth_date",
+        patient.birth_date
+    )
+
+    patient.phone = data.get(
+        "phone",
+        patient.phone
+    )
+
+    patient.email = data.get(
+        "email",
+        patient.email
+    )
+
+    patient.fiscal_code = data.get(
+        "fiscal_code",
+        patient.fiscal_code
+    ).upper()
+
+    db.session.commit()
+
+    return jsonify({
+
+        "message":
+        "Paziente aggiornato con successo"
+    })
+
+
 
 # GET APPOINTMENTS
+
+
 @app.route('/api/appointments', methods=['GET'])
 def get_appointments():
 
-    appointments = Appointment.query.all()
+    appointments = Appointment.query.filter_by(
+    	status="Prenotata"
+    ).all()
 
     result = []
 
@@ -399,7 +458,8 @@ def get_appointments_by_fiscal_code(
         return jsonify([])
 
     appointments = Appointment.query.filter_by(
-        patient_id=patient.id
+    	patient_id=patient.id,
+    	status="Prenotata"
     ).all()
 
     result = []
@@ -587,6 +647,8 @@ def create_report():
     )
 
     db.session.add(report)
+
+    appointment.status = "Completata"
 
     db.session.commit()
 

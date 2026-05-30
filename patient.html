@@ -6,19 +6,38 @@
 </head>
 <body>
 
-<div class="container">
+<div class="container" style="position:relative;">
 
     <div class="dashboard-header">
+	<div style="
+    		display:flex;
+    		justify-content:space-between;
+    		align-items:center;
+    		margin-bottom:30px;
+	">
 
-    <h1>Registrazione Paziente</h1>
+    		<h1 style="
+        		flex:1;
+        		text-align:center;
+        		margin:0;
+    		">
+        		Registrazione Paziente
+    		</h1>
 
-    <button
-        class="btn-red logout-btn"
-        onclick="goBackDashboard()">
+    		<button
+    			class="btn-red"
+    			onclick="goBackDashboard()"
+    			style="
+        			position:absolute;
+        			top:20px;
+        			right:40px;
+        			width:190px;
+    			">
+    			DASHBOARD
+		</button>
 
-        TORNA ALLA DASHBOARD
-
-    </button>
+	</div>
+    
 
 </div>
 

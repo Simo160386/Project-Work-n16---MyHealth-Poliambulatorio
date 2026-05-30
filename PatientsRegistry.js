@@ -26,26 +26,48 @@ function loadPatients() {
 
             const tr =
                 document.createElement("tr");
+		tr.innerHTML = `
 
-            tr.innerHTML = `
+    			<td>${p.id}</td>
 
-                <td>${p.id}</td>
+    			<td>${p.name}</td>
 
-                <td>${p.name}</td>
+    			<td>${p.surname}</td>
 
-                <td>${p.surname}</td>
+    			<td id="birthCell_${p.id}">
+    				${p.birth_date}
 
-                <td>${p.birth_date}</td>
+			</td>
 
-                <td>${p.gender}</td>
+			<td>${p.gender}</td>
 
-                <td>${p.phone}</td>
+			<td id="phoneCell_${p.id}">
+    				${p.phone}
+			</td>
 
-                <td>${p.email}</td>
+			<td id="emailCell_${p.id}">
+    				${p.email}
+			</td>
 
-                <td>${p.fiscal_code}</td>
+			<td id="cfCell_${p.id}">
+   	 			${p.fiscal_code}
+			</td>
 
-            `;
+			<td>
+
+			<button
+    				class="edit-icon-btn"
+    				onclick="togglePatientEdit(${p.id})"
+    				title="Modifica Paziente">
+
+    				<i class="fa-solid fa-pen"></i>
+
+			</button>
+
+			</td>
+
+		`;
+            
 
             body.appendChild(tr);
         });
@@ -124,4 +146,143 @@ function filterPatients() {
 function goBackDashboard() {
 
     window.location.href = "index.html";
+}
+
+function updatePatient(id) {
+
+    const birth_date =
+        document.getElementById(
+            `birth_${id}`
+        ).value;
+
+    const phone =
+        document.getElementById(
+            `phone_${id}`
+        ).value.trim();
+
+    const email =
+        document.getElementById(
+            `email_${id}`
+        ).value.trim();
+
+    const fiscal_code =
+        document.getElementById(
+            `cf_${id}`
+        ).value.trim();
+
+    fetch(
+        API + "/api/patients/" + id,
+        {
+            method: "PUT",
+
+            headers: {
+                "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+
+                birth_date,
+
+                phone,
+
+                email,
+
+                fiscal_code
+            })
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        alert(data.message);
+
+        loadPatients();
+    })
+
+    .catch(err => {
+
+        console.error(err);
+
+        alert(
+            "Errore modifica paziente"
+        );
+    });
+}
+
+
+function togglePatientEdit(id) {
+
+    const birthCell =
+        document.getElementById(
+            `birthCell_${id}`
+        );
+
+    const phoneCell =
+        document.getElementById(
+            `phoneCell_${id}`
+        );
+
+    const emailCell =
+        document.getElementById(
+            `emailCell_${id}`
+        );
+
+    const cfCell =
+        document.getElementById(
+            `cfCell_${id}`
+        );
+
+    if (
+        !document.getElementById(
+            `birth_${id}`
+        )
+    ) {
+
+        const birth =
+            birthCell.textContent.trim();
+
+        const phone =
+            phoneCell.textContent.trim();
+
+        const email =
+            emailCell.textContent.trim();
+
+        const cf =
+            cfCell.textContent.trim();
+
+        birthCell.innerHTML = `
+            <input
+                type="date"
+                id="birth_${id}"
+                value="${birth}">
+        `;
+
+        phoneCell.innerHTML = `
+            <input
+                type="text"
+                id="phone_${id}"
+                value="${phone}">
+        `;
+
+        emailCell.innerHTML = `
+            <input
+                type="email"
+                id="email_${id}"
+                value="${email}">
+        `;
+
+        cfCell.innerHTML = `
+            <input
+                type="text"
+                id="cf_${id}"
+                value="${cf}">
+        `;
+
+    } else {
+
+        updatePatient(id);
+    }
 }
