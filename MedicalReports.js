@@ -12,44 +12,28 @@ window.onload = function () {
 function createReport() {
 
     const appointment_id =
-
-        document
-        .getElementById(
+        document.getElementById(
             "appointment_id"
-        )
-        .value;
+        ).value;
 
-    const diagnosis =
-
-        document
-        .getElementById(
-            "diagnosis"
-        )
-        .value
-        .trim();
-
-    const therapy =
-
-        document
-        .getElementById(
-            "therapy"
-        )
-        .value
-        .trim();
+    const fiscal_code =
+        document.getElementById(
+            "fiscal_code"
+        ).value.trim();
 
     const notes =
-
-        document
-        .getElementById(
+        document.getElementById(
             "notes"
-        )
-        .value
-        .trim();
+        ).value.trim();
+
+    const attachment =
+        document.getElementById(
+            "attachment"
+        ).files[0];
 
     if (
         !appointment_id ||
-        !diagnosis ||
-        !therapy
+        !fiscal_code
     ) {
 
         alert(
@@ -59,24 +43,37 @@ function createReport() {
         return;
     }
 
+    const formData =
+        new FormData();
+
+    formData.append(
+        "appointment_id",
+        appointment_id
+    );
+
+    formData.append(
+        "fiscal_code",
+        fiscal_code
+    );
+
+    formData.append(
+        "notes",
+        notes
+    );
+
+    if (attachment) {
+
+        formData.append(
+            "attachment",
+            attachment
+        );
+    }
+
     fetch(API + "/api/reports", {
 
         method: "POST",
 
-        headers: {
-            "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-
-            appointment_id,
-
-            diagnosis,
-
-            therapy,
-
-            notes
-        })
+        body: formData
     })
 
     .then(res => res.json())
@@ -97,7 +94,6 @@ function createReport() {
         );
     });
 }
-
 
 
 // LOAD REPORTS
@@ -133,13 +129,28 @@ function loadReports() {
 
                 <td>${r.visit_type}</td>
 
-                <td>${r.patient}</td>
+                <td>${r.name}</td>
 
-                <td>${r.doctor}</td>
+		<td>${r.surname}</td>
 
-                <td>${r.diagnosis}</td>
+                <td>${r.fiscal_code}</td>
 
-                <td>${r.therapy}</td>
+		<td>
+    		    ${
+        		r.attachment
+        		? `<a href="${API}/${r.attachment}"
+             			target="_blank"
+             			style="
+                			color:#007bff;
+                			font-weight:bold;
+                			text-decoration:none;
+             			">
+             			<i class="fa-solid fa-paperclip"></i>
+             			Apri
+           		    </a>`
+        		: 'Nessun allegato'
+    		    }
+		</td>
 
                 <td>${r.notes}</td>
 
@@ -165,7 +176,7 @@ function loadReports() {
 
 function filterReports() {
 
-    const input =
+    const idSearch =
 
         document
         .getElementById(
@@ -173,6 +184,16 @@ function filterReports() {
         )
         .value
         .trim();
+
+    const cfSearch =
+
+        document
+        .getElementById(
+            "searchFiscalCode"
+        )
+        .value
+        .trim()
+        .toUpperCase();
 
     const rows =
 
@@ -190,22 +211,34 @@ function filterReports() {
             .textContent
             .trim();
 
+        const fiscalCode =
+            cells[5]
+            .textContent
+            .trim()
+            .toUpperCase();
+
+        let visible = true;
+
+        if (
+            idSearch &&
+            appointmentId !== idSearch
+        ) {
+
+            visible = false;
+        }
+
+        if (
+            cfSearch &&
+            fiscalCode !== cfSearch
+        ) {
+
+            visible = false;
+        }
+
         row.style.display =
-
-            appointmentId === input
-            ? ""
-            : "none";
+            visible ? "" : "none";
     });
-
-    if (input === "") {
-
-        rows.forEach(row => {
-
-            row.style.display = "";
-        });
-    }
 }
-
 
 
 // TORNA DASHBOARD

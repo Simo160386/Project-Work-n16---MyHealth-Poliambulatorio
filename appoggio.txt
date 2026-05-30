@@ -152,67 +152,6 @@ const patient_id = document.getElementById("patient_id").value;
 
 
 
-fai un logo medico con la dicitura "my health poliambulatorio" --> FATTO
-
-
-
-ricerca paziente per cognome e CF
-
-visita dietologica --> FATTO
-visita pneumologica --> FATTO
-visita psichiatrica --> FATTO
-visita diabetologica --> FATTO
-visita allergologica --> FATTO
-visita chirurgica --> FATTO
-visita oncologica --> FATTO
-visita gastroenterologica --> FATTO
-visita reumatologica --> FATTO
-visita geriatrica --> FATTO
-visita nefrologica --> FATTO
-visita senologica --> FATTO
-
-Elimina Visita PEDIATRICA  --> FATTO
-
-
--------------------------------------------------------------
-liste visite prenotate:
-filtrare per tipologia di visita e per data e ora  -->FATTO
-
-
-
-
-prenota visita:
-aggiungere campo "ora"                                -->FATTO
-modificare "dottore" con "medico"		      -->FATTO
-in ordine: paziente, tipo visita, medico, data, ora   -->FATTO
-
-
-
-
-elimina prenotazione:
-ricerca per ID prenotazione e per CF
-apre una lista di appuntamenti in altra schermata che viene selezionato ed eliminato --> FATTO
-la lista degli appuntamenti prevede: ID visita, CF, nome, cognome, data, ora, tipo visita -->FATTO
-
-
-
-
-
-REFERTI --> Possibilità di allegare un documento word editabile nell pagina di creazione referto.
-
-
-GESTIONE PRENOT -> PREVEDERE TASTO MODIFICA APP
-
-
-SELEZIONA TIPOLOGIA VISITA -> VISITA SPECIALISTICA --> FATTO
-
-
-referti medici - ricerca per cf id visita
-togliere dottore dalla tabella E SE POSSIBILE AGGIUNGERE CF
-
-NUOVO REFERTO - AGGIUNGERE NOME E COGNOME PAZIENTE
-                ELIMINARE DIAGNOSI E TERAPIA ED INSERIRLI NELL'ALLEGATO
-
 
 
 

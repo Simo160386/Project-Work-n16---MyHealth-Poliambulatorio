@@ -5,12 +5,19 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import re
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 CORS(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///healthcare.db'
 db = SQLAlchemy(app)
+UPLOAD_FOLDER = "uploads"
+
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 # MODELS e CLASSES
@@ -68,14 +75,11 @@ class MedicalReport(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    appointment_id = db.Column(
-        db.Integer,
-        db.ForeignKey('appointment.id')
-    )
+    appointment_id = db.Column(db.Integer)
 
-    diagnosis = db.Column(db.String(500))
+    fiscal_code = db.Column(db.String(16))
 
-    therapy = db.Column(db.String(500))
+    attachment = db.Column(db.String(255))
 
     notes = db.Column(db.String(1000))
 
@@ -366,73 +370,6 @@ def delete_appointment(appointment_id):
 
 
 
-# CREATE MEDICAL REPORT
-
-@app.route('/api/reports', methods=['POST'])
-def create_report():
-
-    data = request.json
-
-    appointment_id = data.get('appointment_id')
-
-    diagnosis = data.get('diagnosis', '').strip()
-
-    therapy = data.get('therapy', '').strip()
-
-    notes = data.get('notes', '').strip()
-
-    # controlli
-    if (
-        not appointment_id or
-        not diagnosis or
-        not therapy
-    ):
-
-        return jsonify({
-            "message":
-            "Compila tutti i campi obbligatori"
-        }), 400
-
-    # verifica visita
-    appointment =Appointment.query.get(appointment_id)
-
-    if not appointment:
-
-        return jsonify({
-            "message": "Visita non trovata"
-        }), 404
-
-    # controllo referto già esistente
-    existing_report = MedicalReport.query.filter_by(appointment_id=appointment_id).first()
-
-    if existing_report:
-
-        return jsonify({
-            "message":
-            "Referto già presente per questa visita"
-        }), 409
-
-    report = MedicalReport(
-
-        appointment_id=appointment_id,
-
-        diagnosis=diagnosis,
-
-        therapy=therapy,
-
-        notes=notes
-    )
-
-    db.session.add(report)
-
-    db.session.commit()
-
-    return jsonify({
-        "message":
-        "Referto creato con successo"
-    })
-
-
 
 # SEARCH APPOINTMENTS BY FISCAL CODE
 
@@ -495,6 +432,74 @@ def get_appointments_by_fiscal_code(
 
 
 
+#CREATE REPORT
+
+@app.route('/api/reports', methods=['POST'])
+def create_report():
+
+    appointment_id = request.form.get(
+        "appointment_id"
+    )
+
+    fiscal_code = request.form.get(
+        "fiscal_code"
+    )
+
+    notes = request.form.get(
+        "notes"
+    )
+
+    file = request.files.get(
+        "attachment"
+    )
+
+    if (
+        not appointment_id or
+        not fiscal_code
+    ):
+
+        return jsonify({
+            "message":
+            "Compila tutti i campi obbligatori"
+        }), 400
+
+    filename = ""
+
+    if file:
+
+        filename = secure_filename(
+            file.filename
+        )
+
+        file.save(
+
+            os.path.join(
+                app.config["UPLOAD_FOLDER"],
+                filename
+            )
+        )
+
+    report = MedicalReport(
+
+        appointment_id=appointment_id,
+
+        fiscal_code=fiscal_code,
+
+        attachment=filename,
+
+        notes=notes
+    )
+
+    db.session.add(report)
+
+    db.session.commit()
+
+    return jsonify({
+
+        "message":
+        "Referto creato con successo"
+    })
+
 
 
 # GET REPORTS
@@ -508,16 +513,17 @@ def get_reports():
 
     for r in reports:
 
-        appointment = Appointment.query.get(r.appointment_id)
+        appointment = Appointment.query.get(
+            r.appointment_id
+        )
 
         patient = None
-        doctor = None
 
         if appointment:
 
-            patient = Patient.query.get(appointment.patient_id)
-
-            doctor = Doctor.query.get(appointment.doctor_id)
+            patient = Patient.query.get(
+                appointment.patient_id
+            )
 
         result.append({
 
@@ -526,11 +532,19 @@ def get_reports():
             "appointment_id":
                 r.appointment_id,
 
-            "diagnosis":
-                r.diagnosis,
+            "name":
+                patient.name
+                if patient else "N/A",
 
-            "therapy":
-                r.therapy,
+            "surname":
+                patient.surname
+                if patient else "N/A",
+
+            "fiscal_code":
+                r.fiscal_code,
+
+            "attachment":
+                r.attachment,
 
             "notes":
                 r.notes,
@@ -541,15 +555,7 @@ def get_reports():
 
             "visit_type":
                 appointment.description
-                if appointment else "N/A",
-
-            "doctor":
-                doctor.name
-                if doctor else "N/A",
-
-            "patient":
-                f"{patient.name} {patient.surname}"
-                if patient else "N/A"
+                if appointment else "N/A"
         })
 
     return jsonify(result)
