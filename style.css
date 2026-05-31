@@ -11,10 +11,11 @@ body {
 
     width: 90%;
     max-width: 1200px;
-    margin: 40px auto;
+    margin: 10px auto;
     background: white;
-    padding: 40px;
+    padding: 0px 40px 25px 40px;
     border-radius: 25px;
+    position: relative;
     box-shadow: 0px 8px 25px rgba(0,0,0,0.2);
 }
 
@@ -138,12 +139,12 @@ button:hover {
 
 .dashboard {
 
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display:grid;
+    grid-template-columns:1fr 1fr;
 
-    gap: 25px;
+    gap:25px;
 
-    margin-top: 30px;
+    margin-top:-15px;
 }
 
 
@@ -332,18 +333,27 @@ li {
 
 @media (max-width: 768px) {
 
-    .dashboard {
+	.dashboard {
 
-        grid-template-columns: 1fr;
-    }
+    			display: grid;
+    			grid-template-columns: 1fr 1fr;
+
+    			gap: 25px;
+
+    			margin-top: 0px;
+}
+   
 }
 
 /* TABELLA */
 
 .table-container {
 
-    overflow-x: auto;
-    margin-top: 20px;
+    margin-top: 60px;
+
+    background: white;
+
+    border-radius: 12px;
 }
 
 table {
@@ -351,26 +361,32 @@ table {
     width: 100%;
 
     border-collapse: collapse;
+}
 
-    background: white;
+th,
+td {
+
+    padding: 15px;
+
+    text-align: center;
+
+    vertical-align: middle;
 }
 
 th {
 
-    background: #007bff;
+    background: #1976f3;
 
     color: white;
 
-    padding: 14px;
-
-    text-align: left;
+    border-right: 1px solid rgba(255,255,255,0.3);
 }
 
 td {
 
-    padding: 12px;
+    border-right: 1px solid #dcdcdc;
 
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #dcdcdc;
 }
 
 tr:hover {
@@ -422,44 +438,45 @@ tr:hover {
 
 .dashboard-header {
 
-    display: flex;
+    display:flex;
 
-    justify-content: space-between;
+    justify-content:space-between;
 
-    align-items: center;
+    align-items:flex-start;
 
-    margin-bottom: 20px;
+    margin-bottom:-20px;
 
-    flex-wrap: wrap;
+    padding-top:0;
 }
 
 /* LOGO + TITOLO */
 
 .logo-title {
 
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
+    margin-bottom:-40px;
 }
-
 /* LOGO */
 
 .logo {
 
-    width: 280px;
+    width:420px;
 
-    height: auto;
+    height:auto;
 
-    object-fit: contain;
+    display:block;
 
-    display: block;
+    margin:0;
 }
 
 /* LOGOUT BUTTON */
 
 .logout-btn {
+
+    position: absolute;
+
+    top: 15px;
+
+    right: 25px;
 
     width: 180px;
 }
