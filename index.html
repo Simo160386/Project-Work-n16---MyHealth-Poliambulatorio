@@ -1,21 +1,28 @@
 <!DOCTYPE html>
 <html lang="it">
 
+
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Health Poliambulatorio</title>
+    <title>MyHealth Poliambulatorio</title>
 
     <link rel="stylesheet" href="style.css">
 </head>
 
-<link
-rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+
 
 <body>
 
     <div class="container">
+
+
 
         <!-- ===================================== -->
         <!-- LOGIN -->
@@ -84,6 +91,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
             </div>
 
         </div>
+
+
+
 
         <!-- ===================================== -->
         <!-- DASHBOARD STAFF -->
@@ -173,14 +183,14 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
                     <select id="patient_select">
 
                         <option value="">
-                            Paziente
+                            Seleziona Paziente
                         </option>
 
                     </select>
 
                     <!-- TIPO VISITA -->
 
-                    <select id="description">
+                    <select id="description" onchange="loadDoctorsByVisit()">
 
                         <option value="">
                             Seleziona Visita Specialistica
@@ -211,38 +221,31 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
                     <!-- MEDICO -->
 
-                    <select id="doctor_select">
+                    <select id="doctor_select"
+		    onchange="loadAvailableDates()">
 
                         <option value="">
-                            Medico
+                            Seleziona Medico
                         </option>
 
                     </select>
 
                     <!-- DATA -->
 
-                    <input type="date" id="date">
+                    <select id="date"
+		    onchange="loadAvailableHours()">
+    			<option value="">
+        			Seleziona Data
+    			</option>
+		    </select>
 
                     <!-- ORARIO -->
 
                     <select id="hour">
 
                         <option value="">
-                            Orario
+                            Seleziona Orario
                         </option>
-
-                        <option value="08:00">08:00</option>
-                        <option value="09:00">09:00</option>
-                        <option value="10:00">10:00</option>
-                        <option value="11:00">11:00</option>
-                        <option value="12:00">12:00</option>
-                        <option value="13:00">13:00</option>
-                        <option value="14:00">14:00</option>
-                        <option value="15:00">15:00</option>
-                        <option value="16:00">16:00</option>
-                        <option value="17:00">17:00</option>
-                        <option value="18:00">18:00</option>
-                        <option value="19:00">19:00</option>
 
                     </select>
 
@@ -260,12 +263,12 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
                 <div class="card">
 
-                    <h3>📋 Lista Visite Prenotate</h3>
+                    <h3>📋 Lista Visite </h3>
 
                     <select id="filter_description">
 
                         <option value="">
-                            Filtra per Tipologia
+                            Filtra per Visita Specialistica
                         </option>
 
                         <option value="Visita Cardiologica">Visita Cardiologica</option>
@@ -315,14 +318,35 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
                         <option value="19:00">19:00</option>
 
                     </select>
+				
+				<div class="status-filter">
 
-                    <button
-                        class="btn-purple"
-                        onclick="openFilteredAppointmentsPage()">
+    					<label class="status-checkbox">
+        					<input
+            						type="checkbox"
+            						id="showPending">
 
-                        VISUALIZZA
+        					<span>🟠 Visite Non Erogate</span>
+    					</label>
 
-                    </button>
+    					<label class="status-checkbox">
+        					<input
+            						type="checkbox"
+            						id="showCompleted">
+
+        					<span>🟢 Visite Erogate</span>
+    					</label>
+
+				</div>
+		    
+			<button
+    				class="btn-purple"
+    				onclick="openFilteredAppointmentsPage()">
+
+   	 			VISUALIZZA
+
+			</button>
+                    
 
                 </div>
 
@@ -331,7 +355,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
                 <div class="card">
 
-                    <h3>🗑 Gestione Prenotazioni</h3>
+                    <h3>🗑 Gestione Visite Prenotate </h3>
 
                     <input
                         type="number"
@@ -362,6 +386,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
             </div>
 
         </div>
+
+
+
 
         <!-- ===================================== -->
         <!-- DASHBOARD MEDICO -->

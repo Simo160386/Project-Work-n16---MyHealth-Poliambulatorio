@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html>
+
+
 <head>
 
     <title>Visite Prenotate</title>
@@ -7,6 +9,9 @@
     <link rel="stylesheet" href="style.css">
 
 </head>
+
+
+
 
 <body>
 
@@ -53,6 +58,50 @@
 
 </div>
 
+<div id="appointmentsCounters" class="appointments-counters">
+
+    <div class="counter-card">
+
+        <span class="counter-number" id="totalAppointments">
+            0
+        </span>
+
+        <span class="counter-label">
+            Totali
+        </span>
+
+    </div>
+
+    <div class="counter-card completed">
+
+        <span class="counter-number" id="completedAppointments">
+            0
+        </span>
+
+        <span class="counter-label">
+            Erogate
+        </span>
+
+    </div>
+
+    <div class="counter-card pending">
+
+        <span class="counter-number" id="pendingAppointments">
+            0
+        </span>
+
+        <span class="counter-label">
+            Non Erogate
+        </span>
+
+    </div>
+
+</div>
+
+
+
+
+
 
     <!-- TABELLA -->
 
@@ -75,6 +124,8 @@
                     <th>DATA</th>
 
                     <th>ORA</th>
+		    
+		    <th>STATUS</th>
 
                 </tr>
 
@@ -94,9 +145,12 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+
+
 <!-- jsPDF AUTOTABLE -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
 
 
 <!-- FILE SAVER -->
@@ -105,5 +159,9 @@
 
 <script src="AppointmentsFiltered.js"></script>
 
+
+
 </body>
+
+
 </html>

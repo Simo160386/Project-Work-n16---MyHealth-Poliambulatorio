@@ -45,7 +45,18 @@ function loadFilteredAppointments() {
                 "filter_hour"
             );
 
+	const showPending =
+    		sessionStorage.getItem(
+        		"showPending"
+    		) === "true";
 
+
+	const showCompleted =
+    		sessionStorage.getItem(
+        		"showCompleted"
+    		) === "true";
+	
+	
 
         const filteredAppointments =
 
@@ -69,14 +80,62 @@ function loadFilteredAppointments() {
                     !filterHour ||
 
                     a.hour === filterHour;
+		const matchStatus =
+		(
+		
+    			!showCompleted &&
+    			!showPending
+		)
+
+		||
+
+		(
+    			showCompleted &&
+    			a.status === "Completata"
+		)
+
+		||
+
+		(
+    			showPending &&
+    			a.status === "Prenotata"
+		);
 
                 return (
                     matchDescription &&
                     matchDate &&
-                    matchHour
+                    matchHour &&
+		    matchStatus
                 );
             });
 
+
+	console.log(filteredAppointments);
+
+	const totalCount =
+    		filteredAppointments.length;
+
+	const completedCount =
+    		filteredAppointments.filter(
+        		a => a.status === "Completata"
+    		).length;
+
+	const pendingCount =
+    		filteredAppointments.filter(
+        a => a.status === "Prenotata"
+    		).length;
+
+	document.getElementById(
+    		"totalAppointments"
+	).textContent = totalCount;
+
+	document.getElementById(
+    		"completedAppointments"
+	).textContent = completedCount;
+
+	document.getElementById(
+    		"pendingAppointments"
+	).textContent = pendingCount;
 
 
         filteredAppointments.forEach(a => {
@@ -97,6 +156,18 @@ function loadFilteredAppointments() {
     			<td>${a.date}</td>
 
     			<td>${a.hour}</td>
+
+			<td class="${
+    				a.status === "Completata"
+        				? "status-completed"
+        				: "status-pending"
+			}">
+    				${
+        				a.status === "Completata"
+            					? "EROGATA"
+            					: "NON EROGATA"
+    				}
+			</td>			
 `			;
 
             body.appendChild(tr);
@@ -112,7 +183,7 @@ function loadFilteredAppointments() {
 
                 <tr>
 
-                    <td colspan="6"
+                    <td colspan="7"
                         style="
                             text-align:center;
                             font-weight:bold;
@@ -181,12 +252,15 @@ function downloadPDF() {
 
             rows.push([
 
-                cols[0].textContent,
-                cols[1].textContent,
-                cols[2].textContent,
-                cols[3].textContent,
-                cols[4].textContent,
-                cols[5].textContent
+                
+    		cols[0].innerText.trim(),
+    		cols[1].innerText.trim(),
+    		cols[2].innerText.trim(),
+    		cols[3].innerText.trim(),
+    		cols[4].innerText.trim(),
+    		cols[5].innerText.trim(),
+    		cols[6].innerText.trim()
+
             ]);
         }
     });
@@ -207,7 +281,9 @@ function downloadPDF() {
 
             "DATA",
 
-            "ORA"
+            "ORA",
+
+	    "STATUS"
         ]],
 
         body: rows
@@ -219,8 +295,6 @@ function downloadPDF() {
 }
 
 
-
-// DOWNLOAD DOC
 
 // DOWNLOAD DOC
 
@@ -307,3 +381,4 @@ function downloadDOC() {
         'report_visite_prenotate.doc'
     );
 }
+

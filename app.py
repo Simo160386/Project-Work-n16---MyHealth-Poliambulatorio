@@ -6,18 +6,27 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import re
 import os
+import pandas as pd
 from werkzeug.utils import secure_filename
+
+
+
 
 app = Flask(__name__)
 CORS(app)
+
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///healthcare.db'
 db = SQLAlchemy(app)
 UPLOAD_FOLDER = "uploads"
 
+
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+
 
 
 # MODELS e CLASSES
@@ -32,6 +41,8 @@ class User(db.Model):
     		password = db.Column(db.String(50))
 
     		role = db.Column(db.String(50))
+
+
 
 
 class Patient(db.Model):
@@ -52,9 +63,14 @@ class Patient(db.Model):
 
 
 
+
+
 class Doctor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
+
+
+
 
 class Appointment(db.Model):
 
@@ -74,6 +90,9 @@ class Appointment(db.Model):
         db.String(20),
         default="Prenotata"
     )
+
+
+
 
 
 class MedicalReport(db.Model):
@@ -212,6 +231,8 @@ def create_patient():
 
 
 
+
+
 # GET DOCTORS
 
 
@@ -219,6 +240,208 @@ def create_patient():
 def get_doctors():
     doctors = Doctor.query.all()
     return jsonify([{"id": d.id, "name": d.name} for d in doctors])
+
+
+# GET DOCTOR SPECIALTIES
+
+@app.route(
+    "/api/doctor-specialties",
+    methods=["GET"]
+)
+def get_doctor_specialties():
+
+    result = []
+
+    for _, row in SPECIALIZZAZIONI.iterrows():
+
+        result.append({
+
+            "doctor":
+                row["MEDICO"],
+
+            "visit":
+                row["VISITA"]
+        })
+
+    return jsonify(result)
+
+
+#GET DOCTOR SCHEDULES
+
+@app.route(
+    "/api/doctor-schedules",
+    methods=["GET"]
+)
+def get_doctor_schedules():
+
+    result = []
+
+    for _, row in TURNI.iterrows():
+
+        result.append({
+
+            "doctor":
+                row["MEDICO"],
+
+            "day":
+                row["GIORNO"],
+
+            "from":
+                row["DALLE"],
+
+            "to":
+                row["ALLE"]
+        })
+
+    return jsonify(result)
+
+#DOCTOR BY VISIT
+
+@app.route(
+    "/api/doctors-by-visit/<visit>",
+    methods=["GET"]
+)
+def doctors_by_visit(visit):
+
+    filtered = SPECIALIZZAZIONI[
+        SPECIALIZZAZIONI["VISITA"] == visit
+    ]
+
+    result = []
+
+    for _, row in filtered.iterrows():
+
+        doctor = Doctor.query.filter_by(
+            name=row["MEDICO"]
+        ).first()
+
+        if doctor:
+
+            result.append({
+
+                "id": doctor.id,
+
+                "name": doctor.name
+            })
+
+    return jsonify(result)
+
+
+#AVAILABLE DATES 
+
+@app.route(
+    "/api/available-dates/<doctor>",
+    methods=["GET"]
+)
+def available_dates(doctor):
+
+    filtered = TURNI[
+        TURNI["MEDICO"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        ==
+        doctor.strip().lower()
+    ]
+
+    dates = []
+
+    for _, row in filtered.iterrows():
+
+        date_value = pd.to_datetime(
+            row["GIORNO"]
+        )
+
+        dates.append(
+            date_value.strftime("%d/%m/%Y")
+        )
+
+    return jsonify(dates)
+
+
+
+
+
+
+#AVAILABLE HOURS
+
+@app.route(
+    "/api/available-hours/<doctor>/<path:date>",
+    methods=["GET"]
+)
+def available_hours(doctor, date):
+
+    turni = TURNI.copy()
+
+    turni["GIORNO_FORMATTATO"] = pd.to_datetime(
+        turni["GIORNO"]
+    ).dt.strftime("%d-%m-%Y")
+
+    filtered = turni[
+        (
+            turni["MEDICO"]
+            .astype(str)
+            .str.strip()
+            .str.lower()
+            ==
+            doctor.strip().lower()
+        )
+        &
+        (
+            turni["GIORNO_FORMATTATO"]
+            ==
+            date
+        )
+    ]
+
+    hours = []
+
+    for _, row in filtered.iterrows():
+
+        start = int(str(row["DALLE"])[:2])
+        end = int(str(row["ALLE"])[:2])
+
+        for h in range(start, end + 1):
+
+            hours.append(
+                f"{h:02d}:00"
+            )
+
+    # ORARI GIA' PRENOTATI
+
+    doctor_obj = Doctor.query.filter(
+        Doctor.name == doctor
+    ).first()
+
+    occupied = []
+
+    if doctor_obj:
+
+        appointments = Appointment.query.filter_by(
+            doctor_id=doctor_obj.id,
+            date=date.replace("-", "/")
+        ).all()
+
+        occupied = [
+            a.hour
+            for a in appointments
+        ]
+
+    # ELIMINA ORARI OCCUPATI
+
+    available_hours = [
+
+        h for h in hours
+
+        if h not in occupied
+    ]
+
+    return jsonify(
+        available_hours
+    )
+
+
+
 
 
 
@@ -248,20 +471,29 @@ def create_appointment():
             "message": "Compila tutti i campi"
         }), 400
 
+    existing = Appointment.query.filter_by(
+    	doctor_id=doctor_id,
+    	date=date,
+    	hour=hour
+    ).first()
+
+    if existing:
+
+    	return jsonify({
+        	"success": False,
+        	"message": "Questo orario è già prenotato"
+    	}), 400
+
+
     appointment = Appointment(
-
-    date=date,
-
-    hour=hour,
-
-    description=description,
-
-    patient_id=patient_id,
-
-    doctor_id=doctor_id,
-
-    status="Prenotata"
-)
+    	date=date,
+    	hour=hour,
+    	description=description,
+    	patient_id=patient_id,
+    	doctor_id=doctor_id,
+    	status="Prenotata"
+    )
+    
 
     db.session.add(appointment)
 
@@ -272,13 +504,14 @@ def create_appointment():
     })
 
 
+
+
+
+
 # MODIFICA PRENOTAZIONE
 
 
-@app.route(
-    "/api/appointments/<int:id>",
-    methods=["PUT"]
-)
+@app.route("/api/appointments/<int:id>",methods=["PUT"])
 def update_appointment(id):
 
     appointment = Appointment.query.get(id)
@@ -307,6 +540,10 @@ def update_appointment(id):
 
 
 
+
+
+
+
 # GET PATIENTS
 
 @app.route('/api/patients', methods=['GET'])
@@ -328,12 +565,13 @@ def get_patients():
 ])
 
 
+
+
+
+
 # UPDATE PATIENT
 
-@app.route(
-    '/api/patients/<int:id>',
-    methods=['PUT']
-)
+@app.route('/api/patients/<int:id>',methods=['PUT'])
 def update_patient(id):
 
     patient = Patient.query.get(id)
@@ -377,15 +615,16 @@ def update_patient(id):
 
 
 
+
+
+
 # GET APPOINTMENTS
 
 
 @app.route('/api/appointments', methods=['GET'])
 def get_appointments():
 
-    appointments = Appointment.query.filter_by(
-    	status="Prenotata"
-    ).all()
+    appointments = Appointment.query.all()
 
     result = []
 
@@ -410,13 +649,19 @@ def get_appointments():
 
     			"patient_name": patient.name if patient else "N/A",
 
-   			"patient_surname": patient.surname if patient else "N/A"
+   			"patient_surname": patient.surname if patient else "N/A",
+
+			"status": a.status,
 	})
 
     return jsonify({
         "message": "Nessuna visita prenotata" if len(result) == 0 else "",
         "appointments": result
     })
+
+
+
+
 
 
 
@@ -441,10 +686,7 @@ def delete_appointment(appointment_id):
 
 # SEARCH APPOINTMENTS BY FISCAL CODE
 
-@app.route(
-    '/api/appointments/fiscal/<fiscal_code>',
-    methods=['GET']
-)
+@app.route('/api/appointments/fiscal/<fiscal_code>',methods=['GET'])
 def get_appointments_by_fiscal_code(
     fiscal_code
 ):
@@ -498,6 +740,10 @@ def get_appointments_by_fiscal_code(
         })
 
     return jsonify(result)
+
+
+
+
 
 
 
@@ -660,9 +906,10 @@ def create_report():
 
 
 
+
+
+
 # GET REPORTS
-
-
 
 @app.route('/api/reports', methods=['GET'])
 def get_reports():
@@ -721,7 +968,38 @@ def get_reports():
     return jsonify(result)
 
 
+
+
+
+
 # INITIALIZATION DB + DATI DI DEFAULT
+
+CONFIG_FILE = "config_medici.xlsx"
+
+try:
+
+    SPECIALIZZAZIONI = pd.read_excel(
+        CONFIG_FILE,
+        sheet_name="SPECIALIZZAZIONI"
+    )
+
+    TURNI = pd.read_excel(
+        CONFIG_FILE,
+        sheet_name="TURNI"
+    )
+
+    print("Configurazione medici caricata")
+
+except Exception as e:
+
+    print(
+        f"Errore caricamento Excel: {e}"
+    )
+
+    SPECIALIZZAZIONI = pd.DataFrame()
+
+    TURNI = pd.DataFrame()
+
 if __name__ == "__main__":
 
     with app.app_context():

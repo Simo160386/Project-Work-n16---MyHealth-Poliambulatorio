@@ -12,6 +12,9 @@ function loginStaff() {
     loginUser(username, password);
 }
 
+
+
+
 // LOGIN DOCTOR
 
 function loginDoctor() {
@@ -22,6 +25,8 @@ function loginDoctor() {
 
     loginUser(username,password);
 }
+
+
 
 // LOGIN USER
 
@@ -104,7 +109,12 @@ function loginUser(username,password) {
 }
 
 
+
+
 const API = "http://127.0.0.1:5000";
+
+
+
 
 // CONTROLLA SESSIONE AL CARICAMENTO
 
@@ -118,7 +128,10 @@ window.onload = function () {
 
 
 
-    // NASCONDE TUTTE LE DASHBOARD
+
+
+
+// NASCONDE TUTTE LE DASHBOARD
 
     document.getElementById(
         "staff-dashboard"
@@ -130,7 +143,9 @@ window.onload = function () {
 
 
 
-    // SESSIONE ATTIVA
+
+
+// SESSIONE ATTIVA
 
     if (loggedIn === "true") {
 
@@ -166,7 +181,10 @@ window.onload = function () {
 
     }
 
-    // NESSUN LOGIN
+
+
+
+// NESSUN LOGIN
 
     else {
 
@@ -175,6 +193,8 @@ window.onload = function () {
         ).style.display = "block";
     }
 };
+
+
 
 
 
@@ -235,6 +255,9 @@ function login() {
 
 
 
+
+
+
 // LOAD DOCTORS (dropdown)
 
 function loadDoctors() {
@@ -269,6 +292,9 @@ function loadDoctors() {
         });
     });
 }
+
+
+
 
 
 
@@ -307,6 +333,62 @@ function loadPatientsSelect() {
 
 
 
+
+
+
+//LOAD DOCTORS BY VISIT
+
+function loadDoctorsByVisit() {
+
+    const visit =
+
+        document.getElementById(
+            "description"
+        ).value;
+
+    const doctorSelect =
+
+        document.getElementById(
+            "doctor_select"
+        );
+
+    doctorSelect.innerHTML =
+
+    	'<option value="">Seleziona Medico</option>';
+
+    if (!visit) return;
+
+    fetch(
+        API +
+        "/api/doctors-by-visit/" +
+        encodeURIComponent(visit)
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        data.forEach(d => {
+
+            doctorSelect.innerHTML += `
+
+                <option value="${d.id}">
+
+                    ${d.name}
+
+                </option>
+            `;
+        });
+    });
+}
+
+
+
+
+
+
+
+
 //LOAD PATIENTS
 
 function loadPatients() {
@@ -334,6 +416,12 @@ function loadPatients() {
         alert("Errore nel caricamento pazienti");
     });
 }
+
+
+
+
+
+
 
 
 
@@ -368,7 +456,17 @@ function createPatient() {
       loadPatientsSelect();
 
  });
+
 }
+
+
+
+
+
+
+
+
+
 
 // OPEN PATIENTPAGE
 
@@ -383,6 +481,11 @@ function openPatientsPage() {
     window.location.href =
         "PatientsRegistry.html";
 }
+
+
+
+
+
 
 
 
@@ -419,10 +522,7 @@ function createAppointment() {
         return;
     }
 
-    const parts = rawDate.split("-");
-
-    const date =
-        `${parts[2]}/${parts[1]}/${parts[0]}`;
+    const date = rawDate;
 
 
     fetch(API + "/api/appointments", {
@@ -464,6 +564,12 @@ function createAppointment() {
 
 
 
+
+
+
+
+
+
 // DELETE APPOINTMENT
 
 function deleteAppointmentById() {
@@ -494,6 +600,13 @@ function deleteAppointmentById() {
 }
 
 
+
+
+
+
+
+
+
 // SEARCH APPOINTMENT
 
 function searchAppointment() {
@@ -513,7 +626,12 @@ function searchAppointment() {
 
 
 
-    // RICERCA PER ID
+  
+
+
+  
+
+// RICERCA PER ID
 
     if (appointmentId) {
 
@@ -677,6 +795,12 @@ function searchAppointment() {
 
 
 
+
+
+
+
+
+
     // RICERCA PER CODICE FISCALE
 
     if (fiscalCode) {
@@ -696,6 +820,13 @@ function searchAppointment() {
         "Inserisci ID prenotazione o codice fiscale"
     );
 }
+
+
+
+
+
+
+
 
 
 // DELETE APPOINTMENT
@@ -741,6 +872,12 @@ function deleteAppointment(id) {
 
 
 
+
+
+
+
+
+
 // LOAD APPOINTMENTS
 
 function loadAppointments(showAlert = true) {
@@ -780,11 +917,18 @@ function loadAppointments(showAlert = true) {
 
 
 
+
+
+
 function openAppointmentsRegistry() {
 
     window.location.href =
         "AppointmentsRegistry.html";
 }
+
+
+
+
 
 function openMedicalReportsPage() {
 
@@ -793,22 +937,22 @@ function openMedicalReportsPage() {
 }
 
 
+
+
+
 function openFilteredAppointmentsPage() {
 
     const description =
-
         document.getElementById(
             "filter_description"
         ).value;
 
     const rawDate =
-
         document.getElementById(
             "filter_date"
         ).value;
 
     const hour =
-
         document.getElementById(
             "filter_hour"
         ).value;
@@ -823,7 +967,6 @@ function openFilteredAppointmentsPage() {
             `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
 
-    // salva filtri
     sessionStorage.setItem(
         "filter_description",
         description
@@ -839,10 +982,32 @@ function openFilteredAppointmentsPage() {
         hour
     );
 
-    // apertura pagina
+    sessionStorage.setItem(
+        "showPending",
+        document.getElementById(
+            "showPending"
+        ).checked
+    );
+
+    sessionStorage.setItem(
+        "showCompleted",
+        document.getElementById(
+            "showCompleted"
+        ).checked
+    );
+
     window.location.href =
         "AppointmentsFiltered.html";
 }
+
+
+
+
+
+
+
+
+
 
 // DASHBOARD MEDICO - FILTRI VISITE
 
@@ -895,6 +1060,12 @@ function openDoctorFilteredAppointmentsPage() {
         "AppointmentsFiltered.html";
 }
 
+
+
+
+
+
+
 // MOSTRA FORM MODIFICA
 
 function showEditForm(id) {
@@ -913,6 +1084,12 @@ function showEditForm(id) {
         form.style.display = "none";
     }
 }
+
+
+
+
+
+
 
 
 
@@ -987,6 +1164,13 @@ function updateAppointment(id) {
     });
 }
 
+
+
+
+
+
+
+
 // SHOW/HIDE FORM MODIFICA
 
 function toggleEditForm(id) {
@@ -1004,4 +1188,92 @@ function toggleEditForm(id) {
 
         form.style.display = "none";
     }
+}
+
+function loadAvailableDates() {
+
+    const doctorName =
+
+        document.getElementById(
+            "doctor_select"
+        ).options[
+            document.getElementById(
+                "doctor_select"
+            ).selectedIndex
+        ].text;
+
+    fetch(
+        API +
+        "/api/available-dates/" +
+        encodeURIComponent(doctorName)
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        const dateSelect =
+            document.getElementById("date");
+
+        dateSelect.innerHTML =
+            '<option value="">Seleziona Data</option>';
+
+        data.forEach(d => {
+
+            dateSelect.innerHTML +=
+
+                `<option value="${d}">
+                    ${d}
+                </option>`;
+        });
+    });
+}
+
+
+function loadAvailableHours() {
+
+    const doctorName =
+
+        document.getElementById(
+            "doctor_select"
+        ).options[
+            document.getElementById(
+                "doctor_select"
+            ).selectedIndex
+        ].text;
+
+    const date =
+    	document.getElementById("date")
+    	.value
+    	.replaceAll("/", "-");
+
+    if (!date) return;
+
+    fetch(
+        API +
+        "/api/available-hours/" +
+        encodeURIComponent(doctorName) +
+        "/" +
+        encodeURIComponent(date)
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        const hourSelect =
+            document.getElementById("hour");
+
+        hourSelect.innerHTML =
+            '<option value="">Orario</option>';
+
+        data.forEach(h => {
+
+            hourSelect.innerHTML +=
+
+                `<option value="${h}">
+                    ${h}
+                </option>`;
+        });
+    });
 }

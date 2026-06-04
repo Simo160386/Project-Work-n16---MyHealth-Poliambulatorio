@@ -7,6 +7,8 @@ window.onload = function () {
 
 
 
+
+
 // CARICA PAZIENTI
 
 function loadPatients() {
@@ -83,6 +85,8 @@ function loadPatients() {
 
 
 
+
+
 // RICERCA PAZIENTE
 
 function filterPatients() {
@@ -139,6 +143,9 @@ function filterPatients() {
             : "none";
     });
 }
+
+
+
 
 
 // TORNA DASHBOARD
@@ -211,6 +218,9 @@ function updatePatient(id) {
         );
     });
 }
+
+
+
 
 
 function togglePatientEdit(id) {
