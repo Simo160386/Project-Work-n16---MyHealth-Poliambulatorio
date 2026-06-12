@@ -2,8 +2,96 @@ const API = "http://127.0.0.1:5000";
 
 window.onload = function () {
 
-    loadReports();
+     loadDoctorAppointments();
+     loadReports();
 };
+
+
+
+
+function loadDoctorAppointments() {
+
+    const doctorName =
+        sessionStorage.getItem(
+            "username"
+        );
+
+    fetch(
+
+        API +
+
+        "/api/appointments-by-doctor/" +
+
+        doctorName
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        const select =
+
+            document.getElementById(
+                "appointment_select"
+            );
+
+        select.innerHTML =
+
+            '<option value="">Seleziona Visita</option>';
+
+        data.forEach(a => {
+
+          select.innerHTML += `
+
+    		<option value="${a.id}"
+
+        		data-name="${a.patient_name}"
+
+        		data-surname="${a.patient_surname}"
+
+        		data-cf="${a.fiscal_code}">
+
+        		ID ${a.id} - ${a.description}
+
+    		</option>
+
+	`;
+        });
+    });
+}
+
+
+
+function loadAppointmentData() {
+
+    const select =
+
+        document.getElementById(
+            "appointment_select"
+        );
+
+    const option =
+
+        select.options[
+            select.selectedIndex
+        ];
+
+    document.getElementById(
+        "patient_name"
+    ).value =
+        option.dataset.name || "";
+
+    document.getElementById(
+        "patient_surname"
+    ).value =
+        option.dataset.surname || "";
+
+    document.getElementById(
+        "fiscal_code"
+    ).value =
+        option.dataset.cf || "";
+}
+
 
 
 
@@ -14,9 +102,9 @@ window.onload = function () {
 function createReport() {
 
     const appointment_id =
-        document.getElementById(
-            "appointment_id"
-        ).value;
+    	document.getElementById(
+        	"appointment_select"
+    	).value;
 
     const patient_name =
         document.getElementById(
@@ -42,6 +130,16 @@ function createReport() {
         document.getElementById(
             "attachment"
         ).files[0];
+
+    if (!attachment) {
+
+    	alert(
+        	"Obbligatorio allegare il referto"
+   	);
+
+    	return;
+    }
+
 
     if (
         !appointment_id ||
@@ -117,32 +215,33 @@ function createReport() {
         alert(
             data.message
         );
+	document.getElementById(
+    		"appointment_select"
+	).selectedIndex = 0;
 
-        document.getElementById(
-            "appointment_id"
-        ).value = "";
+	document.getElementById(
+    		"patient_name"
+	).value = "";
 
-        document.getElementById(
-            "patient_name"
-        ).value = "";
+	document.getElementById(
+    		"patient_surname"
+	).value = "";
 
-        document.getElementById(
-            "patient_surname"
-        ).value = "";
+	document.getElementById(
+    		"fiscal_code"
+	).value = "";
 
-        document.getElementById(
-            "fiscal_code"
-        ).value = "";
+	document.getElementById(
+    		"notes"
+	).value = "";
 
-        document.getElementById(
-            "notes"
-        ).value = "";
+	document.getElementById(
+    		"attachment"
+	).value = "";
 
-        document.getElementById(
-            "attachment"
-        ).value = "";
-
-        loadReports();
+	loadDoctorAppointments();
+	loadReports();
+        
     })
 
     .catch(err => {
@@ -162,7 +261,16 @@ function createReport() {
 
 function loadReports() {
 
-    fetch(API + "/api/reports")
+    const doctorName =
+        sessionStorage.getItem(
+            "username"
+        );
+
+    fetch(
+        API +
+        "/api/reports-by-doctor/" +
+        doctorName
+    )
 
     .then(res => res.json())
 
@@ -263,6 +371,8 @@ function filterReports() {
             "#reportsBody tr"
         );
 
+    let found = false;
+
     rows.forEach(row => {
 
         const cells =
@@ -274,10 +384,10 @@ function filterReports() {
             .trim();
 
         const fiscalCode =
-    		cells[6]
-    		.textContent
-    		.trim()
-    		.toUpperCase();
+            cells[6]
+            .textContent
+            .trim()
+            .toUpperCase();
 
         let visible = true;
 
@@ -299,11 +409,39 @@ function filterReports() {
 
         row.style.display =
             visible ? "" : "none";
+
+        if (visible) {
+            found = true;
+        }
+
     });
+
+     if (
+    	!found &&
+    	(idSearch || cfSearch)
+     ) {
+
+    	alert(
+        	"Codice Fiscale errato e/o inesistente"
+    	);
+
+    	rows.forEach(row => {
+
+        	row.style.display = "";
+
+    	});
+
+    	document.getElementById(
+        	"searchAppointmentId"
+    	).value = "";
+
+    	document.getElementById(
+        	"searchFiscalCode"
+    	).value = "";
+    }
+
+    
 }
-
-
-// TORNA DASHBOARD
 
 function goBackDashboard() {
 

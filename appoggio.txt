@@ -195,8 +195,94 @@ const patient_id = document.getElementById("patient_id").value;
 
 
 
+<input
+    			type="number"
+    			id="appointment_id"
+    			placeholder="ID Visita"
+			readonly>
 
 
+
+
+
+
+
+
+
+function filterReports() {
+
+    const idSearch =
+
+        document
+        .getElementById(
+            "searchAppointmentId"
+        )
+        .value
+        .trim();
+
+    const cfSearch =
+
+        document
+        .getElementById(
+            "searchFiscalCode"
+        )
+        .value
+        .trim()
+        .toUpperCase();
+
+    const rows =
+
+        document.querySelectorAll(
+            "#reportsBody tr"
+        );
+
+    rows.forEach(row => {
+
+        const cells =
+            row.querySelectorAll("td");
+
+        const appointmentId =
+            cells[1]
+            .textContent
+            .trim();
+
+        const fiscalCode =
+    		cells[6]
+    		.textContent
+    		.trim()
+    		.toUpperCase();
+
+        let visible = true;
+
+        if (
+            idSearch &&
+            appointmentId !== idSearch
+        ) {
+
+            visible = false;
+        }
+
+        if (
+            cfSearch &&
+            fiscalCode !== cfSearch
+        ) {
+
+            visible = false;
+        }
+
+        row.style.display =
+            visible ? "" : "none";
+    });
+}
+
+
+// TORNA DASHBOARD
+
+function goBackDashboard() {
+
+    window.location.href =
+        "index.html";
+}
 
 
 			

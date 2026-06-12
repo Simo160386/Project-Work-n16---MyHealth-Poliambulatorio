@@ -51,14 +51,30 @@ function loginUser(username,password) {
 
     .then(data => {
 
-        if (!data.success) {
+          if (!data.success) {
 
-            alert(
-                "Login fallito"
-            );
+    		alert("Login fallito");
 
-            return;
-        }
+    		// Pulisce entrambi i form
+
+    		document.getElementById(
+        		"username_staff"
+    		).value = "";
+
+    		document.getElementById(
+        		"password_staff"
+    		).value = "";
+
+    		document.getElementById(
+        		"username_doctor"
+    		).value = "";
+
+    		document.getElementById(
+        		"password_doctor"
+    		).value = "";
+
+    		return;
+	}
 
 
 
@@ -71,6 +87,27 @@ function loginUser(username,password) {
             "role",
             data.role
         );
+	
+	sessionStorage.setItem(
+    		"username",
+    		username
+	);
+	
+	document.getElementById(
+    		"username_staff"
+	).value = "";
+
+	document.getElementById(
+    		"password_staff"
+	).value = "";
+
+	document.getElementById(
+    		"username_doctor"
+	).value = "";
+
+	document.getElementById(
+    		"password_doctor"
+	).value = "";
 
 
 
@@ -90,7 +127,6 @@ function loginUser(username,password) {
 
 
 
-            loadDoctors();
 
             loadPatientsSelect();
         }
@@ -112,6 +148,9 @@ function loginUser(username,password) {
 
 
 const API = "http://127.0.0.1:5000";
+
+let selectedDoctorId = null;
+let selectedDoctorName = null;
 
 
 
@@ -162,8 +201,6 @@ window.onload = function () {
             document.getElementById(
                 "staff-dashboard"
             ).style.display = "block";
-
-            loadDoctors();
 
             loadPatientsSelect();
         }
@@ -219,39 +256,11 @@ function logout() {
 }
 
 
-function login() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
 
-    fetch(API + "/api/login", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ username, password })
-    })
-    .then(res => res.json())
-    .then(data => {
-       			if (data.success) {
 
-    			document.getElementById("login-section").style.display = "none";
 
-    			// PERSONALE SANITARIO
-    			if (data.role === "staff") {
 
-       				document.getElementById("staff-dashboard").style.display = "block";
 
-        			document.getElementById("doctor-dashboard").style.display = "none";
-    			}
-
-    			// MEDICO SPECIALISTA
-   			 else if (data.role === "doctor") {
-
-        			document.getElementById("doctor-dashboard").style.display = "block";
-
-        			document.getElementById("staff-dashboard").style.display = "none";
-    			}
-	}
-    });
-}
 
 
 
@@ -261,6 +270,8 @@ function login() {
 // LOAD DOCTORS (dropdown)
 
 function loadDoctors() {
+
+	
 
     fetch(API + "/api/doctors")
 
@@ -292,6 +303,8 @@ function loadDoctors() {
         });
     });
 }
+
+
 
 
 
@@ -336,31 +349,20 @@ function loadPatientsSelect() {
 
 
 
-//LOAD DOCTORS BY VISIT
+//CARICA DOTTORE X VISITA
 
 function loadDoctorsByVisit() {
 
     const visit =
-
         document.getElementById(
             "description"
         ).value;
-
-    const doctorSelect =
-
-        document.getElementById(
-            "doctor_select"
-        );
-
-    doctorSelect.innerHTML =
-
-    	'<option value="">Seleziona Medico</option>';
 
     if (!visit) return;
 
     fetch(
         API +
-        "/api/doctors-by-visit/" +
+        "/api/available-dates-by-visit/" +
         encodeURIComponent(visit)
     )
 
@@ -368,20 +370,78 @@ function loadDoctorsByVisit() {
 
     .then(data => {
 
+        const dateSelect =
+            document.getElementById(
+                "date"
+            );
+
+        dateSelect.innerHTML =
+            '<option value="">Seleziona Data</option>';
+
         data.forEach(d => {
 
-            doctorSelect.innerHTML += `
-
-                <option value="${d.id}">
-
-                    ${d.name}
-
-                </option>
-            `;
+            dateSelect.innerHTML +=
+                `<option value="${d}">
+                    ${d}
+                </option>`;
         });
     });
 }
 
+
+
+
+
+
+
+//CARICA ORE DISPONIBILI
+
+function loadAvailableHours() {
+
+    const visit =
+        document.getElementById(
+            "description"
+        ).value;
+
+    const date =
+        document.getElementById(
+            "date"
+        ).value;
+
+    if (!visit || !date) {
+
+        return;
+    }
+
+    fetch(
+        API +
+        "/api/available-hours-by-visit/" +
+        encodeURIComponent(visit) +
+        "/" +
+        encodeURIComponent(date)
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        const hourSelect =
+            document.getElementById(
+                "hour"
+            );
+
+        hourSelect.innerHTML =
+            '<option value="">Seleziona Orario</option>';
+
+        data.forEach(h => {
+
+            hourSelect.innerHTML +=
+                `<option value="${h}">
+                    ${h}
+                </option>`;
+        });
+    });
+}
 
 
 
@@ -432,7 +492,7 @@ function createPatient() {
     const surname = document.getElementById("surname").value;
 
     if (!name || !surname) {
-        alert("Compila tutti i campi");
+        alert("Attenzione!Si prega di compilare tutti i campi");
         return;
     }
 
@@ -490,6 +550,8 @@ function openPatientsPage() {
 
 
 
+
+
 // CREATE APPOINTMENT
 
 function createAppointment() {
@@ -506,24 +568,19 @@ function createAppointment() {
     const patient_id =
         document.getElementById("patient_select").value;
 
-    const doctor_id =
-        document.getElementById("doctor_select").value;
 
     if (
         !rawDate ||
         !hour ||
         !description ||
-        !patient_id ||
-        !doctor_id
+        !patient_id
     ) {
 
-        alert("Compila tutti i campi");
-
+        alert("Attenzione!Si prega di compilare tutti i campi");
         return;
     }
 
     const date = rawDate;
-
 
     fetch(API + "/api/appointments", {
 
@@ -536,14 +593,10 @@ function createAppointment() {
         body: JSON.stringify({
 
             date,
-
             hour,
-
             description,
-
             patient_id,
 
-            doctor_id
         })
     })
 
@@ -552,6 +605,22 @@ function createAppointment() {
     .then(data => {
 
         alert(data.message);
+
+        // RESET FORM
+
+        document.getElementById("patient_select").selectedIndex = 0;
+
+        document.getElementById("description").selectedIndex = 0;
+
+        selectedDoctorId = null;
+	selectedDoctorName = null;
+
+        document.getElementById("date").innerHTML =
+            '<option value="">Seleziona Data</option>';
+
+        document.getElementById("hour").innerHTML =
+            '<option value="">Seleziona Orario</option>';
+
     })
 
     .catch(err => {
@@ -559,8 +628,11 @@ function createAppointment() {
         console.error(err);
 
         alert("Errore prenotazione");
+
     });
 }
+
+
 
 
 
@@ -643,6 +715,10 @@ function searchAppointment() {
 
         .then(data => {
 
+	    document.getElementById(
+    		"searchAppointmentId"
+	    ).value = "";
+
             const appointment =
 
                 data.appointments.find(
@@ -663,7 +739,7 @@ function searchAppointment() {
                 container.innerHTML = `
 
                     <p>
-                        Prenotazione non trovata
+                        ATTENZIONE: PRENOTAZIONE INESISTENTE!
                     </p>
                 `;
 
@@ -707,31 +783,25 @@ function searchAppointment() {
         id="editForm_${appointment.id}"
         style="display:none; margin-top:20px;">
 
-        <input
-            type="date"
-            id="editDate_${appointment.id}">
+	<select
+    		id="editDate_${appointment.id}"
+    		onchange="loadEditHours(${appointment.id})">
 
-        <select
-            id="editHour_${appointment.id}">
+    		<option value="">
+        		Seleziona Data
+    		</option>
 
-            <option value="">
-                Seleziona Orario
-            </option>
+	</select>
 
-            <option value="08:00">08:00</option>
-            <option value="09:00">09:00</option>
-            <option value="10:00">10:00</option>
-            <option value="11:00">11:00</option>
-            <option value="12:00">12:00</option>
-            <option value="13:00">13:00</option>
-            <option value="14:00">14:00</option>
-            <option value="15:00">15:00</option>
-            <option value="16:00">16:00</option>
-            <option value="17:00">17:00</option>
-            <option value="18:00">18:00</option>
-            <option value="19:00">19:00</option>
+	<select
+    		id="editHour_${appointment.id}">
 
-        </select>
+    		<option value="">
+        		Seleziona Orario
+    		</option>
+
+	</select>
+        
 
         <button
             class="btn-orange"
@@ -745,14 +815,15 @@ function searchAppointment() {
 
     <!-- BOTTONI -->
 
+${appointment.status === "Prenotata" ? `
+
 <div class="appointment-actions">
 
-   	<div class="action-item">
+    <div class="action-item">
 
         <button
             class="edit-icon-btn"
-            onclick="toggleEditForm(${appointment.id})"
-            title="Modifica Prenotazione">
+            onclick="toggleEditForm(${appointment.id})">
 
             <i class="fa-solid fa-pen"></i>
 
@@ -768,8 +839,7 @@ function searchAppointment() {
 
         <button
             class="delete-icon-btn"
-            onclick="deleteAppointment(${appointment.id})"
-            title="Elimina Prenotazione">
+            onclick="deleteAppointment(${appointment.id})">
 
             <i class="fa-solid fa-trash"></i>
 
@@ -782,6 +852,24 @@ function searchAppointment() {
     </div>
 
 </div>
+
+` : `
+
+<div style="
+    margin-top:20px;
+    padding:15px;
+    background:#d4edda;
+    color:#155724;
+    border-radius:8px;
+    text-align:center;
+    font-weight:bold;
+">
+
+    ✓ VISITA EROGATA
+
+</div>
+
+`}
     
 
 </div>
@@ -801,25 +889,65 @@ function searchAppointment() {
 
 
 
-    // RICERCA PER CODICE FISCALE
 
-    if (fiscalCode) {
 
-        sessionStorage.setItem(
-            "searchFiscalCode",
-            fiscalCode
-        );
+// RICERCA PER CODICE FISCALE
 
-        window.location.href =
-            "AppointmentsByFiscalCode.html";
+	if (fiscalCode) {
 
-        return;
-    }
+    		if (fiscalCode.length !== 16) {
+
+        		alert(
+            			"Attenzione!Codice Fiscale non valido"
+        		);
+
+			document.getElementById(
+            			"searchFiscalCode"
+        		).value = "";
+
+        		return;
+    	}
+	
+	fetch(
+    		API +
+    		"/api/patient-exists/" +
+    		fiscalCode
+	)
+
+	.then(res => res.json())
+
+	.then(data => {
+
+    		if (!data.exists) {
+
+        		alert(
+            			"Attenzione! Questo paziente non esiste nel sistema!"
+        		);
+			document.getElementById(
+        			"searchFiscalCode"
+    			).value = "";
+
+        		return;
+    		}
+
+    		sessionStorage.setItem(
+        		"searchFiscalCode",
+        		fiscalCode
+    		);
+
+    		window.location.href =
+        		"AppointmentsByFiscalCode.html";
+	});
+    	
+
+    	return;
+	}
 
     alert(
         "Inserisci ID prenotazione o codice fiscale"
     );
 }
+
 
 
 
@@ -874,6 +1002,110 @@ function deleteAppointment(id) {
 
 
 
+function loadEditDates(id) {
+
+    fetch(
+        API +
+        "/api/appointment-details/" +
+        id
+    )
+
+    .then(res => res.json())
+
+    .then(appointment => {
+
+        const visit =
+            appointment.description;
+
+        fetch(
+            API +
+            "/api/available-dates-by-visit/" +
+            encodeURIComponent(visit)
+        )
+
+        .then(res => res.json())
+
+        .then(dates => {
+
+            const select =
+                document.getElementById(
+                    `editDate_${id}`
+                );
+
+            select.innerHTML =
+                '<option value="">Seleziona Data</option>';
+
+            dates.forEach(d => {
+
+                select.innerHTML +=
+                `<option value="${d}">
+                    ${d}
+                </option>`;
+            });
+
+            select.dataset.visit =
+                visit;
+        });
+    });
+}
+
+
+
+
+
+
+function loadEditHours(id) {
+
+    const date = document.getElementById(
+        `editDate_${id}`
+    ).value;
+
+    const visit = document.getElementById(
+        `editDate_${id}`
+    ).dataset.visit;
+
+    if (!date || !visit) {
+
+        return;
+    }
+
+    fetch(
+        API +
+        "/api/available-hours-by-visit/" +
+        encodeURIComponent(visit) +
+        "/" +
+        encodeURIComponent(date)
+    )
+
+    .then(res => res.json())
+
+    .then(hours => {
+
+        const select =
+            document.getElementById(
+                `editHour_${id}`
+            );
+
+        select.innerHTML =
+            '<option value="">Seleziona Orario</option>';
+
+        hours.forEach(h => {
+
+            select.innerHTML +=
+            `<option value="${h}">
+                ${h}
+            </option>`;
+        });
+    });
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -920,6 +1152,8 @@ function loadAppointments(showAlert = true) {
 
 
 
+
+
 function openAppointmentsRegistry() {
 
     window.location.href =
@@ -930,11 +1164,22 @@ function openAppointmentsRegistry() {
 
 
 
+
+
+
+
+
+
 function openMedicalReportsPage() {
 
     window.location.href =
         "MedicalReports.html";
 }
+
+
+
+
+
 
 
 
@@ -961,10 +1206,7 @@ function openFilteredAppointmentsPage() {
 
     if (rawDate) {
 
-        const parts = rawDate.split("-");
-
-        formattedDate =
-            `${parts[2]}/${parts[1]}/${parts[0]}`;
+        const formattedDate = rawDate;
     }
 
     sessionStorage.setItem(
@@ -1066,6 +1308,10 @@ function openDoctorFilteredAppointmentsPage() {
 
 
 
+
+
+
+
 // MOSTRA FORM MODIFICA
 
 function showEditForm(id) {
@@ -1116,11 +1362,8 @@ function updateAppointment(id) {
 
         return;
     }
-
-    const parts = rawDate.split("-");
-
-    const formattedDate =
-        `${parts[2]}/${parts[1]}/${parts[0]}`;
+	const formattedDate = rawDate;
+    
 
     fetch(
 
@@ -1149,9 +1392,23 @@ function updateAppointment(id) {
 
     .then(data => {
 
-        alert(data.message);
+    	alert(data.message);
 
-        searchAppointment();
+    	// svuota i campi ricerca
+
+    	document.getElementById(
+        	"searchAppointmentId"
+    	).value = "";
+
+    	document.getElementById(
+        	"searchFiscalCode"
+    	).value = "";
+
+    	// elimina il risultato visualizzato
+
+    	document.getElementById(
+        	"appointmentSearchResult"
+    	).innerHTML = "";
     })
 
     .catch(err => {
@@ -1163,6 +1420,7 @@ function updateAppointment(id) {
         );
     });
 }
+
 
 
 
@@ -1184,29 +1442,30 @@ function toggleEditForm(id) {
 
         form.style.display = "block";
 
+        loadEditDates(id);
+
     } else {
 
         form.style.display = "none";
     }
 }
 
+
+
+
+
+
+
+
 function loadAvailableDates() {
 
-    const doctorName =
-
-        document.getElementById(
-            "doctor_select"
-        ).options[
-            document.getElementById(
-                "doctor_select"
-            ).selectedIndex
-        ].text;
+    const doctorName = selectedDoctorName;
 
     fetch(
         API +
         "/api/available-dates/" +
-        encodeURIComponent(doctorName)
-    )
+        doctorName
+    )     
 
     .then(res => res.json())
 
@@ -1230,50 +1489,5 @@ function loadAvailableDates() {
 }
 
 
-function loadAvailableHours() {
 
-    const doctorName =
 
-        document.getElementById(
-            "doctor_select"
-        ).options[
-            document.getElementById(
-                "doctor_select"
-            ).selectedIndex
-        ].text;
-
-    const date =
-    	document.getElementById("date")
-    	.value
-    	.replaceAll("/", "-");
-
-    if (!date) return;
-
-    fetch(
-        API +
-        "/api/available-hours/" +
-        encodeURIComponent(doctorName) +
-        "/" +
-        encodeURIComponent(date)
-    )
-
-    .then(res => res.json())
-
-    .then(data => {
-
-        const hourSelect =
-            document.getElementById("hour");
-
-        hourSelect.innerHTML =
-            '<option value="">Orario</option>';
-
-        data.forEach(h => {
-
-            hourSelect.innerHTML +=
-
-                `<option value="${h}">
-                    ${h}
-                </option>`;
-        });
-    });
-}

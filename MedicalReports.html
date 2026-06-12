@@ -50,27 +50,38 @@
 
     <div class="card">
 
-        <h2>Nuovo Referto</h2>
+        
+		<h2>Nuovo Referto</h2>
+
+		<select
+    			id="appointment_select"
+    			onchange="loadAppointmentData()">
+
+    			<option value="">
+        			Seleziona Visita
+    			</option>
+
+		</select>
+
 		
-		<input
-    			type="number"
-    			id="appointment_id"
-    			placeholder="ID Visita">
 
 		<input
     			type="text"
     			id="patient_name"
-    			placeholder="Nome Paziente">
+    			placeholder="Nome Paziente"
+    			readonly>
 
 		<input
     			type="text"
     			id="patient_surname"
-    			placeholder="Cognome Paziente">
-
+    			placeholder="Cognome Paziente"
+    			readonly>
+	
 		<input
     			type="text"
     			id="fiscal_code"
-    			placeholder="Codice Fiscale">
+    			placeholder="Codice Fiscale"
+    			readonly>
 
 		<input
     			type="file"
@@ -84,6 +95,7 @@
         
 
         <button
+	    type="button"
             class="btn-blue"
             onclick="createReport()">
 

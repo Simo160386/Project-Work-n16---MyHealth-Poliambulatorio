@@ -34,7 +34,7 @@ function createPatient() {
         !fiscal_code
     ) {
 
-        alert("Compila tutti i campi");
+        alert("Attenzione!Si prega di compilare tutti i campi!");
         return;
     }
 
@@ -44,14 +44,14 @@ function createPatient() {
 
     if (!emailRegex.test(email)) {
 
-        alert("Inserisci una e-mail valida");
+        alert("Attenzione!Inserire una e-mail valida");
         return;
     }
 
     // VALIDAZIONE TELEFONO
     if (!/^\d+$/.test(phone)) {
 
-        alert("Il telefono deve contenere solo numeri");
+        alert("Il telefono deve contenere SOLO cifre");
         return;
     }
 
@@ -78,7 +78,7 @@ function createPatient() {
 
         alert(data.message);
 
-        if (data.message === "Paziente creato!") {
+        if (data.message === "Paziente creato con successo!") {
 
             window.location.href = "index.html";
         }

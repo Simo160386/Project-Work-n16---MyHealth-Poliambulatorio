@@ -7,6 +7,9 @@ window.onload = function () {
 
 
 
+
+
+
 // LOAD APPOINTMENTS
 
 function loadAppointments() {
@@ -16,17 +19,43 @@ function loadAppointments() {
         sessionStorage.getItem(
             "searchFiscalCode"
         );
+	
+	fetch(
+    		API +
+    		"/api/appointments/fiscal/" +
+    		fiscalCode
+	)
 
-    fetch(
+	.then(async res => {
 
-        API +
-        "/api/appointments/fiscal/" +
-        fiscalCode
-    )
+    		const data = await res.json();
 
-    .then(res => res.json())
+    		if (!res.ok) {
 
-    .then(data => {
+        		if (data.error === "CF_NOT_FOUND") {
+
+            			alert(
+                			"Attenzione!Codice Fiscale errato e/o inesistente"
+            			);
+
+            			sessionStorage.removeItem(
+                			"searchFiscalCode"
+            			);
+
+            			window.location.href =
+                			"Appointments.html";
+        	}
+
+        	return null;
+    	}
+
+    	return data;
+})
+
+.then(data => {
+
+    	if (!data) return;
+    
 
         const body =
 
@@ -109,31 +138,24 @@ function loadAppointments() {
 
     		<div style="padding:20px;">
 
-        		<input
-            			type="date"
-            			id="editDate_${a.id}">
-
         		<select
-            			id="editHour_${a.id}">
+    				id="editDate_${a.id}"
+    				onchange="loadEditHours(${a.id})">
 
-            			<option value="">
-                			Seleziona Orario
-            			</option>
+    				<option value="">
+        				Seleziona Data
+    				</option>
 
-            			<option value="08:00">08:00</option>
-            			<option value="09:00">09:00</option>
-           			<option value="10:00">10:00</option>
-            			<option value="11:00">11:00</option>
-            			<option value="12:00">12:00</option>
-            			<option value="13:00">13:00</option>
-            			<option value="14:00">14:00</option>
-            			<option value="15:00">15:00</option>
-            			<option value="16:00">16:00</option>
-            			<option value="17:00">17:00</option>
-            			<option value="18:00">18:00</option>
-            			<option value="19:00">19:00</option>
+			</select>
 
-        		</select>
+			<select
+    				id="editHour_${a.id}">
+
+    				<option value="">
+        				Seleziona Orario
+    				</option>
+
+			</select>
 
         		<button
             			class="btn-orange"
@@ -152,29 +174,39 @@ body.appendChild(editRow);
 
         });
 
+	 if (data.length === 0) {
+
+    		body.innerHTML = `
+
+        		<tr>
+
+            			<td colspan="9"
+                			style="
+                    				text-align:center;
+                    				font-weight:bold;
+                    				padding:20px;
+                			">
+
+                			Attenzione!Non risultano prenotazioni attive
+
+            			</td>
+
+        		</tr>
+
+    		`;
+
+    		return;
+}
 
 
-        if (data.length === 0) {
-
-            body.innerHTML = `
-
-                <tr>
-
-                    <td colspan="8"
-                        style="
-                            text-align:center;
-                            padding:20px;
-                        ">
-
-                        Nessuna prenotazione trovata
-
-                    </td>
-
-                </tr>
-            `;
-        }
+        
     });
 }
+
+
+
+
+
 
 
 
@@ -184,7 +216,7 @@ function deleteAppointment(id) {
 
     if (
         !confirm(
-            "Confermi eliminazione?"
+            "Attenzione!Confermi eliminazione?"
         )
     ) {
         return;
@@ -211,6 +243,11 @@ function deleteAppointment(id) {
 
 
 
+
+
+
+
+
 // BACK
 
 function goBackDashboard() {
@@ -218,6 +255,11 @@ function goBackDashboard() {
     window.location.href =
         "index.html";
 }
+
+
+
+
+
 
 // SHOW/HIDE MODIFICA
 
@@ -233,12 +275,125 @@ function toggleEditForm(id) {
         row.style.display =
             "table-row";
 
+        loadEditDates(id);
+
     } else {
 
         row.style.display =
             "none";
     }
 }
+
+
+
+
+
+//CARICA DATE MODIFICATE
+
+
+function loadEditDates(id) {
+
+    fetch(
+        API +
+        "/api/appointment-details/" +
+        id
+    )
+
+    .then(res => res.json())
+
+    .then(appointment => {
+
+        const visit =
+            appointment.description;
+
+        fetch(
+            API +
+            "/api/available-dates-by-visit/" +
+            encodeURIComponent(visit)
+        )
+
+        .then(res => res.json())
+
+        .then(dates => {
+
+            const select =
+                document.getElementById(
+                    `editDate_${id}`
+                );
+
+            select.innerHTML =
+                '<option value="">Seleziona Data</option>';
+
+            dates.forEach(d => {
+
+                select.innerHTML +=
+                `<option value="${d}">
+                    ${d}
+                </option>`;
+            });
+
+            select.dataset.visit =
+                visit;
+        });
+    });
+}
+
+
+
+
+
+
+// CARICA ORE MODIFICATE
+
+
+function loadEditHours(id) {
+
+    const date =
+        document.getElementById(
+            `editDate_${id}`
+        ).value;
+
+    const visit =
+        document.getElementById(
+            `editDate_${id}`
+        ).dataset.visit;
+
+    if (!date) return;
+
+    fetch(
+        API +
+        "/api/available-hours-by-visit/" +
+        encodeURIComponent(visit) +
+        "/" +
+        encodeURIComponent(date)
+    )
+
+    .then(res => res.json())
+
+    .then(hours => {
+
+        const select =
+            document.getElementById(
+                `editHour_${id}`
+            );
+
+        select.innerHTML =
+            '<option value="">Seleziona Orario</option>';
+
+        hours.forEach(h => {
+
+            select.innerHTML +=
+            `<option value="${h}">
+                ${h}
+            </option>`;
+        });
+    });
+}
+
+
+
+
+
 
 
 
@@ -259,17 +414,13 @@ function updateAppointment(id) {
     if (!rawDate || !hour) {
 
         alert(
-            "Inserisci data e orario"
+            "Inserire nuova data e orario"
         );
 
         return;
     }
 
-    const parts =
-        rawDate.split("-");
-
-    const formattedDate =
-        `${parts[2]}/${parts[1]}/${parts[0]}`;
+    const formattedDate = rawDate;
 
     fetch(
 

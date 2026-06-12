@@ -7,6 +7,9 @@ window.onload = function () {
 
 
 
+
+
+
 // LOAD FILTERED APPOINTMENTS
 
 function loadFilteredAppointments() {
@@ -211,6 +214,10 @@ function loadFilteredAppointments() {
 
 
 
+
+
+
+
 // TORNA DASHBOARD
 
 function goBackDashboard() {
@@ -218,6 +225,11 @@ function goBackDashboard() {
     window.location.href =
         "index.html";
 }
+
+
+
+
+
 
 // DOWNLOAD PDF
 
@@ -293,6 +305,10 @@ function downloadPDF() {
         "report_visite_prenotate.pdf"
     );
 }
+
+
+
+
 
 
 

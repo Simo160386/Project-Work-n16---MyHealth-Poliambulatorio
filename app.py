@@ -1,4 +1,3 @@
-
 #IMPORT LIBRERIE
 
 from flask import Flask, request, jsonify
@@ -7,7 +6,11 @@ from flask_cors import CORS
 import re
 import os
 import pandas as pd
+from datetime import datetime
 from werkzeug.utils import secure_filename
+
+
+
 
 
 
@@ -24,6 +27,9 @@ UPLOAD_FOLDER = "uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+
 
 
 
@@ -53,13 +59,11 @@ class Patient(db.Model):
 
     birth_date = db.Column(db.String(20))
     gender = db.Column(db.String(10))
-    phone = db.Column(db.String(30))
+    phone = db.Column(db.String(30),unique=True)
     email = db.Column(db.String(120))
     fiscal_code = db.Column(db.String(16), unique=True)
 
-    __table_args__ = (
-        db.UniqueConstraint('name', 'surname', name='unique_patient'),
-    )
+  
 
 
 
@@ -93,8 +97,6 @@ class Appointment(db.Model):
 
 
 
-
-
 class MedicalReport(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
@@ -116,6 +118,10 @@ class MedicalReport(db.Model):
 
 
 
+
+
+
+
 # LOGIN
 
 
@@ -127,6 +133,7 @@ def login():
     username = data['username']
     password = data['password']
 
+
     # PERSONALE SANITARIO
     if username == "admin" and password == "admin":
 
@@ -134,6 +141,7 @@ def login():
             "success": True,
             "role": "staff"
         })
+
 
     # MEDICI SPECIALISTI
     doctor = Doctor.query.filter(
@@ -155,6 +163,9 @@ def login():
 
 
 
+
+
+
 # CREATE PATIENT
 
 
@@ -169,7 +180,40 @@ def create_patient():
     gender = data.get('gender', '').strip()
     phone = data.get('phone', '').strip()
     email = data.get('email', '').strip()
-    fiscal_code = data.get('fiscal_code', '').strip().upper()
+    fiscal_code = data.get(
+        'fiscal_code',
+        ''
+    ).strip().upper()
+
+    # VALIDAZIONE CODICE FISCALE
+
+    if len(fiscal_code) != 16:
+
+        return jsonify({
+            "message":
+            "Attenzione: Il Codice Fiscale deve contenere 16 caratteri"
+        }), 400
+
+    if not fiscal_code.isalnum():
+
+        return jsonify({
+            "message":
+            "Attenzione: Il Codice Fiscale deve essere alfanumerico"
+        }), 400
+
+    if not any(c.isalpha() for c in fiscal_code):
+
+        return jsonify({
+            "message":
+            "Attenzione: Il Codice Fiscale deve contenere almeno una lettera"
+        }), 400
+
+    if not any(c.isdigit() for c in fiscal_code):
+
+        return jsonify({
+            "message":
+            "Attenzione: Il Codice Fiscale deve contenere almeno un numero"
+        }), 400
 
     # CONTROLLO CAMPI VUOTI
     if (
@@ -181,25 +225,73 @@ def create_patient():
         not email or
         not fiscal_code
     ):
-        return jsonify({
-            "message": "Compila tutti i campi"
-        }), 400
+
+    	return jsonify({
+            "message":
+            "Attenzione: Si prega di compilare tutti i campi"
+    	}), 400
 
     # VALIDAZIONE EMAIL
-    email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+    # VALIDAZIONE EMAIL
+
+    email = email.lower()
+
+    email_regex = (
+        r'^[A-Za-z0-9._%+-]+'
+        r'@[A-Za-z0-9.-]+'
+        r'\.[A-Za-z]{2,}$'
+    )
 
     if not re.match(email_regex, email):
 
         return jsonify({
-            "message": "E-mail non valida"
+            "message":
+            "Attenzione!E-mail non valida"
         }), 400
 
-    # VALIDAZIONE TELEFONO
-    if not phone.isdigit():
+    if " " in email:
 
         return jsonify({
-            "message": "Il telefono deve contenere solo numeri"
+            "message":
+            "Attenzione!L'e-mail non può contenere spazi"
         }), 400
+
+    if email.count("@") != 1:
+
+        return jsonify({
+            "message":
+            "Attenzione!Formato e-mail non valido"
+        }), 400
+
+
+    # VALIDAZIONE TELEFONO
+
+    if not phone.isdigit():
+
+    	return jsonify({
+        	"message":
+        	"Attenzione!Il numero di telefono deve contenere solo numeri"
+    	}), 400
+
+    if len(phone) != 10:
+
+    	return jsonify({
+    	    "message":
+        	"Attenzione!Il numero di telefono deve contenere esattamente 10 cifre"
+   	}), 400
+
+    # CONTROLLO TELEFONO DUPLICATO
+
+    existing_phone = Patient.query.filter_by(
+        phone=phone
+    ).first()
+
+    if existing_phone:
+
+        return jsonify({
+            "message":
+            "Attenzione!Numero di telefono già presente nel sistema"
+        }), 409
 
     # CONTROLLO CODICE FISCALE DUPLICATO
     existing_cf = Patient.query.filter_by(
@@ -209,7 +301,7 @@ def create_patient():
     if existing_cf:
 
         return jsonify({
-            "message": "Codice fiscale già presente"
+            "message": "Attenzione!Codice fiscale risulta presente, Paziente già registrato"
         }), 409
 
     patient = Patient(
@@ -226,8 +318,10 @@ def create_patient():
     db.session.commit()
 
     return jsonify({
-        "message": "Paziente creato!"
+        "message": "PAZIENTE CREATO CON SUCCESSO!"
     })
+
+
 
 
 
@@ -295,36 +389,224 @@ def get_doctor_schedules():
 
     return jsonify(result)
 
-#DOCTOR BY VISIT
+
+
+# DATE DISPONIBILI PER VISITA
 
 @app.route(
-    "/api/doctors-by-visit/<visit>",
+    "/api/available-dates-by-visit/<visit>",
     methods=["GET"]
 )
-def doctors_by_visit(visit):
+def available_dates_by_visit(visit):
 
-    filtered = SPECIALIZZAZIONI[
-        SPECIALIZZAZIONI["VISITA"] == visit
+    
+
+    rows = SPECIALIZZAZIONI[
+        SPECIALIZZAZIONI["VISITA"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        ==
+        visit.strip().lower()
     ]
 
-    result = []
+    
+
+    doctors = rows["MEDICO"].tolist()
+
+    
+
+    dates = []
+
+    for doctor in doctors:
+
+        
+
+        turni = TURNI[
+            TURNI["MEDICO"]
+            .astype(str)
+            .str.strip()
+            ==
+            str(doctor).strip()
+        ]
+
+        
+
+        for _, row in turni.iterrows():
+
+            giorno = pd.to_datetime(
+                row["GIORNO"]
+            ).strftime("%d/%m/%Y")
+
+
+            if giorno not in dates:
+
+                dates.append(giorno)
+
+
+    return jsonify(dates)
+
+
+
+@app.route(
+    "/api/available-hours-by-visit/<visit>/<path:date>",
+    methods=["GET"]
+)
+def available_hours_by_visit(visit, date):
+
+    rows = SPECIALIZZAZIONI[
+        SPECIALIZZAZIONI["VISITA"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        ==
+        visit.strip().lower()
+    ]
+
+    if rows.empty:
+        return jsonify([])
+
+    doctors = rows["MEDICO"].tolist()
+
+    hours = []
+
+    from datetime import datetime
+    
+
+    for doctor in doctors:
+
+        filtered = TURNI[
+            (TURNI["MEDICO"] == doctor)
+        ]
+
+        for _, row in filtered.iterrows():
+
+            giorno = pd.to_datetime(
+                row["GIORNO"]
+            ).strftime("%d/%m/%Y")
+
+            if giorno != date:
+                continue
+
+            start = datetime.strptime(
+                str(row["DALLE"])[:5],
+                "%H:%M"
+            ).hour
+
+            end = datetime.strptime(
+                str(row["ALLE"])[:5],
+                "%H:%M"
+            ).hour
+
+	    
+
+            for h in range(start, end + 1):
+
+                ora = f"{h:02d}:00"
+
+                if ora not in hours:
+                    hours.append(ora)
+
+    hours.sort()
+
+    return jsonify(hours)
+
+
+
+
+
+
+
+
+
+#ORE DISPONIBILI PER VISITA
+
+
+@app.route(
+    "/api/available-hours/<doctor>/<path:date>",
+    methods=["GET"]
+)
+def available_hours(doctor, date):
+
+    turni = TURNI.copy()
+
+    turni["GIORNO_FORMATTATO"] = pd.to_datetime(
+        turni["GIORNO"]
+    ).dt.strftime("%d-%m-%Y")
+
+    filtered = turni[
+        (
+            turni["MEDICO"]
+            .astype(str)
+            .str.strip()
+            .str.lower()
+            ==
+            doctor.strip().lower()
+        )
+        &
+        (
+            turni["GIORNO_FORMATTATO"]
+            ==
+            date
+        )
+    ]
+
+    hours = []
+
+    from datetime import datetime
 
     for _, row in filtered.iterrows():
 
-        doctor = Doctor.query.filter_by(
-            name=row["MEDICO"]
-        ).first()
+        start = datetime.strptime(
+            str(row["DALLE"])[:5],
+            "%H:%M"
+        ).hour
 
-        if doctor:
+        end = datetime.strptime(
+            str(row["ALLE"])[:5],
+            "%H:%M"
+        ).hour
 
-            result.append({
+        for h in range(start, end + 1):
 
-                "id": doctor.id,
+            hours.append(
+                f"{h:02d}:00"
+            )
 
-                "name": doctor.name
-            })
+    doctor_obj = Doctor.query.filter(
+        Doctor.name == doctor
+    ).first()
 
-    return jsonify(result)
+    occupied = []
+
+    if doctor_obj:
+
+        appointments = Appointment.query.filter_by(
+            doctor_id=doctor_obj.id,
+            status="Prenotata"
+        ).all()
+
+        occupied = [
+            a.hour
+            for a in appointments
+        ]
+
+    available_hours = [
+
+        h for h in hours
+
+        if h not in occupied
+    ]
+
+    return jsonify(
+        available_hours
+    )
+
+
+
+
+
+
 
 
 #AVAILABLE DATES 
@@ -363,90 +645,10 @@ def available_dates(doctor):
 
 
 
-#AVAILABLE HOURS
-
-@app.route(
-    "/api/available-hours/<doctor>/<path:date>",
-    methods=["GET"]
-)
-def available_hours(doctor, date):
-
-    turni = TURNI.copy()
-
-    turni["GIORNO_FORMATTATO"] = pd.to_datetime(
-        turni["GIORNO"]
-    ).dt.strftime("%d-%m-%Y")
-
-    filtered = turni[
-        (
-            turni["MEDICO"]
-            .astype(str)
-            .str.strip()
-            .str.lower()
-            ==
-            doctor.strip().lower()
-        )
-        &
-        (
-            turni["GIORNO_FORMATTATO"]
-            ==
-            date
-        )
-    ]
-
-    hours = []
-
-    for _, row in filtered.iterrows():
-
-        start = int(str(row["DALLE"])[:2])
-        end = int(str(row["ALLE"])[:2])
-
-        for h in range(start, end + 1):
-
-            hours.append(
-                f"{h:02d}:00"
-            )
-
-    # ORARI GIA' PRENOTATI
-
-    doctor_obj = Doctor.query.filter(
-        Doctor.name == doctor
-    ).first()
-
-    occupied = []
-
-    if doctor_obj:
-
-        appointments = Appointment.query.filter_by(
-            doctor_id=doctor_obj.id,
-            date=date.replace("-", "/")
-        ).all()
-
-        occupied = [
-            a.hour
-            for a in appointments
-        ]
-
-    # ELIMINA ORARI OCCUPATI
-
-    available_hours = [
-
-        h for h in hours
-
-        if h not in occupied
-    ]
-
-    return jsonify(
-        available_hours
-    )
-
-
-
 
 
 
 # CREATE APPOINTMENT
-
 
 @app.route('/api/appointments', methods=['POST'])
 def create_appointment():
@@ -457,51 +659,154 @@ def create_appointment():
     date = data.get('date')
     description = data.get('description')
     patient_id = data.get('patient_id')
-    doctor_id = data.get('doctor_id')
+
+    doctor_id = None
+
+    specialists = SPECIALIZZAZIONI[
+    	SPECIALIZZAZIONI["VISITA"] == description
+    ]
+
+    for _, spec in specialists.iterrows():
+
+    	doctor_name = spec["MEDICO"]
+
+    	turni = TURNI[
+        	TURNI["MEDICO"] == doctor_name
+    	]
+
+    	for _, turno in turni.iterrows():
+
+        	giorno = pd.to_datetime(
+            		turno["GIORNO"]
+        	).strftime("%d/%m/%Y")
+
+        	if giorno != date:
+            		continue
+
+        	start_hour = int(
+            		str(turno["DALLE"])[:2]
+        	)
+
+        	end_hour = int(
+            		str(turno["ALLE"])[:2]
+        	)	
+
+        	selected_hour = int(
+            		hour[:2]
+        	)
+
+        	if start_hour <= selected_hour <= end_hour:
+
+            		doctor = Doctor.query.filter_by(
+                		name=doctor_name
+            	    	).first()
+
+            		if doctor:
+
+                		doctor_id = doctor.id
+
+            		break
+
+    	if doctor_id:
+        	break
 
     if (
-    	not date or
-    	not hour or
-    	not description or
-    	not patient_id or
-    	not doctor_id
-	):
+        not date or
+        not hour or
+        not description or
+        not patient_id
+    ):
 
         return jsonify({
-            "message": "Compila tutti i campi"
+            "message":
+            "Attenzione!Si prega di compilare tutti i campi"
         }), 400
 
-    existing = Appointment.query.filter_by(
-    	doctor_id=doctor_id,
-    	date=date,
-    	hour=hour
-    ).first()
-
-    if existing:
-
-    	return jsonify({
-        	"success": False,
-        	"message": "Questo orario è già prenotato"
-    	}), 400
-
-
     appointment = Appointment(
-    	date=date,
-    	hour=hour,
-    	description=description,
-    	patient_id=patient_id,
-    	doctor_id=doctor_id,
-    	status="Prenotata"
+        date=date,
+        hour=hour,
+        description=description,
+        patient_id=patient_id,
+        doctor_id=doctor_id,
+        status="Prenotata"
     )
-    
 
     db.session.add(appointment)
-
     db.session.commit()
 
     return jsonify({
-        "message": "Prenotazione effettuata!"
+        "message":
+        "PRENOTAZIONE VISITA EFFETTUATA!"
     })
+
+
+
+
+
+
+
+#APPOINTMENTS BY DOCTOR
+
+@app.route(
+    "/api/appointments-by-doctor/<doctor>",
+    methods=["GET"]
+)
+def appointments_by_doctor(doctor):
+
+    doctor_obj = Doctor.query.filter_by(
+        name=doctor
+    ).first()
+
+    if not doctor_obj:
+
+        return jsonify([])
+
+    # Tutte le visite del medico
+    appointments = Appointment.query.filter_by(
+        doctor_id=doctor_obj.id
+    ).all()
+
+    result = []
+
+    for a in appointments:
+
+        # Se esiste già un referto, salta la visita
+        existing_report = MedicalReport.query.filter_by(
+            appointment_id=a.id
+        ).first()
+
+        if existing_report:
+            continue
+
+        patient = Patient.query.get(
+            a.patient_id
+        )
+
+        result.append({
+
+            "id": a.id,
+
+            "patient_name":
+                patient.name if patient else "",
+
+            "patient_surname":
+                patient.surname if patient else "",
+
+            "fiscal_code":
+                patient.fiscal_code if patient else "",
+
+            "description":
+                a.description,
+
+            "date":
+                a.date
+
+        })
+
+    return jsonify(result)
+
+
+
 
 
 
@@ -510,8 +815,7 @@ def create_appointment():
 
 # MODIFICA PRENOTAZIONE
 
-
-@app.route("/api/appointments/<int:id>",methods=["PUT"])
+@app.route("/api/appointments/<int:id>", methods=["PUT"])
 def update_appointment(id):
 
     appointment = Appointment.query.get(id)
@@ -522,22 +826,165 @@ def update_appointment(id):
             "message": "Prenotazione non trovata"
         }), 404
 
+    if appointment.status == "Completata":
+
+        return jsonify({
+            "message":
+            "Non è possibile modificare una visita già erogata"
+        }), 400
+
     data = request.json
 
-    appointment.date = data.get("date")
+    date = data.get("date")
+    hour = data.get("hour")
 
-    appointment.hour = data.get("hour")
+    if not date or not hour:
+
+        return jsonify({
+            "message":
+            "Data e orario obbligatori"
+        }), 400
+
+    if "-" in date:
+
+        parts = date.split("-")
+
+        if len(parts[0]) == 4:
+
+            date = f"{parts[2]}/{parts[1]}/{parts[0]}"
+
+    doctor_id = None
+
+    specialists = SPECIALIZZAZIONI[
+        SPECIALIZZAZIONI["VISITA"]
+        == appointment.description
+    ]
+
+    for _, spec in specialists.iterrows():
+
+        doctor_name = spec["MEDICO"]
+
+        turni = TURNI[
+            TURNI["MEDICO"] == doctor_name
+        ]
+
+        for _, turno in turni.iterrows():
+
+            giorno = pd.to_datetime(
+                turno["GIORNO"]
+            ).strftime("%d/%m/%Y")
+
+            if giorno != date:
+                continue
+
+            start_hour = int(
+                str(turno["DALLE"])[:2]
+            )
+
+            end_hour = int(
+                str(turno["ALLE"])[:2]
+            )
+
+            selected_hour = int(
+                hour[:2]
+            )
+
+            if start_hour <= selected_hour <= end_hour:
+
+                doctor = Doctor.query.filter_by(
+                    name=doctor_name
+                ).first()
+
+                if doctor:
+
+                    doctor_id = doctor.id
+
+                break
+
+        if doctor_id:
+            break
+
+    appointment.date = date
+    appointment.hour = hour
+
+    if doctor_id:
+        appointment.doctor_id = doctor_id
 
     db.session.commit()
 
     return jsonify({
-
         "success": True,
-
         "message":
-        "Prenotazione modificata con successo"
+        "PRENOTAZIONE MODIFICATA CON SUCCESSO!"
     })
 
+
+
+
+
+
+
+#GET DOCTOR-VISIT
+
+@app.route(
+    "/api/appointment-doctor/<int:id>",
+    methods=["GET"]
+)
+def get_appointment_doctor(id):
+
+    appointment = Appointment.query.get(id)
+
+    if not appointment:
+
+        return jsonify({}), 404
+
+    doctor = Doctor.query.get(
+        appointment.doctor_id
+    )
+
+    if not doctor:
+
+        return jsonify({}), 404
+
+    return jsonify({
+
+        "doctor_id": doctor.id,
+
+        "doctor_name": doctor.name
+
+    })
+
+
+
+
+
+
+
+#DETTAGLI APPUNTAMENTO
+
+@app.route(
+    "/api/appointment-details/<int:id>",
+    methods=["GET"]
+)
+def get_appointment_details(id):
+
+    appointment = Appointment.query.get(id)
+
+    if not appointment:
+
+        return jsonify({}), 404
+
+    return jsonify({
+
+        "id": appointment.id,
+
+        "description": appointment.description,
+
+        "date": appointment.date,
+
+        "hour": appointment.hour
+
+    })
 
 
 
@@ -569,9 +1016,11 @@ def get_patients():
 
 
 
+
+
 # UPDATE PATIENT
 
-@app.route('/api/patients/<int:id>',methods=['PUT'])
+@app.route('/api/patients/<int:id>', methods=['PUT'])
 def update_patient(id):
 
     patient = Patient.query.get(id)
@@ -579,39 +1028,156 @@ def update_patient(id):
     if not patient:
 
         return jsonify({
-            "message":
-            "Paziente non trovato"
+            "message": "Attenzione!Paziente non trovato"
         }), 404
 
     data = request.json
+    new_email = data.get(
+    	"email",
+    	patient.email
+    ).strip().lower()
+
+    new_phone = data.get(
+    	"phone",
+    	patient.phone
+    ).strip()
+
+
+    # VALIDAZIONE TELEFONO
+
+    if not new_phone.isdigit():
+
+    	   return jsonify({
+        	"message":
+        	"Attenzione!Il numero di telefono deve contenere solo numeri"
+    	   }), 400
+
+    if len(new_phone) != 10:
+
+    	   return jsonify({
+        	"message":
+        	"Attenzione!Il numero di telefono deve contenere esattamente 10 cifre"
+    	}), 400
+    new_fiscal_code = data.get(
+        "fiscal_code",
+        patient.fiscal_code
+    ).strip().upper()
+
+        # VALIDAZIONE EMAIL
+
+    email_regex = (
+        r'^[A-Za-z0-9._%+-]+'
+        r'@[A-Za-z0-9.-]+'
+        r'\.[A-Za-z]{2,}$'
+    )
+
+    if not re.match(email_regex, new_email):
+
+        return jsonify({
+            "message":
+            "Attenzione!E-mail non valida"
+        }), 400
+
+    if " " in new_email:
+
+        return jsonify({
+            "message":
+            "Attenzione!L'e-mail non può contenere spazi"
+        }), 400
+
+    if new_email.count("@") != 1:
+
+        return jsonify({
+            "message":
+            "Attenzione!Formato e-mail non valido"
+        }), 400
+
+    # VALIDAZIONE CODICE FISCALE
+
+    if len(new_fiscal_code) != 16:
+
+        return jsonify({
+            "message":
+            "Attenzione!Il Codice Fiscale deve contenere 16 caratteri"
+        }), 400
+
+    if not new_fiscal_code.isalnum():
+
+        return jsonify({
+            "message":
+            "Attenzione!Il Codice Fiscale deve essere alfanumerico"
+        }), 400
+
+    if not any(c.isalpha() for c in new_fiscal_code):
+
+        return jsonify({
+            "message":
+            "Attenzione!Il Codice Fiscale deve contenere almeno una lettera"
+        }), 400
+
+    if not any(c.isdigit() for c in new_fiscal_code):
+
+        return jsonify({
+            "message":
+            "Attenzione!Il Codice Fiscale deve contenere almeno un numero"
+        }), 400
+    
+
+   # CONTROLLO CF DUPLICATO
+
+    existing_patient = Patient.query.filter_by(
+        fiscal_code=new_fiscal_code
+    ).first()
+
+    if (
+        existing_patient and
+        existing_patient.id != patient.id
+    ):
+
+        return jsonify({
+            "message":
+            "Attenzione!Codice fiscale già presente nel sistema"
+        }), 409
+
+        
+
+    # CONTROLLO TELEFONO DUPLICATO
+
+	    
+
+    existing_phone = Patient.query.filter_by(
+        phone=new_phone
+    ).first()
+
+    if (
+        existing_phone and
+        existing_phone.id != patient.id
+    ):
+
+        return jsonify({
+            "message":
+            "Attenzione!Numero di telefono già presente nel sistema"
+        }), 409
 
     patient.birth_date = data.get(
         "birth_date",
         patient.birth_date
     )
 
-    patient.phone = data.get(
-        "phone",
-        patient.phone
-    )
+    patient.phone = new_phone
 
-    patient.email = data.get(
-        "email",
-        patient.email
-    )
+    patient.email = new_email
 
-    patient.fiscal_code = data.get(
-        "fiscal_code",
-        patient.fiscal_code
-    ).upper()
+    patient.fiscal_code = new_fiscal_code
 
     db.session.commit()
 
     return jsonify({
-
         "message":
-        "Paziente aggiornato con successo"
+        "PAZIENTE AGGIORNATO CON SUCCESSO!"
     })
+
+
 
 
 
@@ -655,9 +1221,11 @@ def get_appointments():
 	})
 
     return jsonify({
-        "message": "Nessuna visita prenotata" if len(result) == 0 else "",
+        "message": "Attenzione!Nessuna visita prenotata" if len(result) == 0 else "",
         "appointments": result
     })
+
+
 
 
 
@@ -672,12 +1240,39 @@ def delete_appointment(appointment_id):
     appointment = Appointment.query.get(appointment_id)
 
     if not appointment:
-        return jsonify({"message": "Prenotazione non trovata"}), 404
+        return jsonify({"message": "Attenzione!Prenotazione non trovata"}), 404
+
+    if appointment.status == "Completata":
+
+    	return jsonify({
+        	"message":
+        	"Attenzione!Non è possibile eliminare una visita già erogata"
+    	}), 400
 
     db.session.delete(appointment)
     db.session.commit()
 
-    return jsonify({"message": "Prenotazione eliminata con successo"})
+    return jsonify({"message": "PRENOTAZIONE ELIMINATA CON SUCCESSO!"})
+
+
+
+#PATIENT EXIST-FISCAL CODE
+
+@app.route(
+    "/api/patient-exists/<fiscal_code>",
+    methods=["GET"]
+)
+def patient_exists(fiscal_code):
+
+    patient = Patient.query.filter_by(
+        fiscal_code=fiscal_code
+    ).first()
+
+    return jsonify({
+        "exists": patient is not None
+    })
+
+
 
 
 
@@ -697,7 +1292,9 @@ def get_appointments_by_fiscal_code(
 
     if not patient:
 
-        return jsonify([])
+    	return jsonify({
+        	"Attenzione": "Codice Fiscale non esistente"
+    }), 404
 
     appointments = Appointment.query.filter_by(
     	patient_id=patient.id,
@@ -747,6 +1344,8 @@ def get_appointments_by_fiscal_code(
 
 
 
+
+
 #CREATE REPORT
 
 
@@ -756,6 +1355,19 @@ def create_report():
     appointment_id = request.form.get(
         "appointment_id"
     )
+
+    appointment = Appointment.query.get(
+        appointment_id
+    )
+
+    if not appointment:
+
+        return jsonify({
+
+            "message":
+            "Visita non trovata"
+
+        }), 404
 
     patient_name = request.form.get(
         "patient_name"
@@ -777,6 +1389,13 @@ def create_report():
         "attachment"
     )
 
+    if not file or file.filename == "":
+
+    	return jsonify({
+        	"message":
+       		"Attenzione!Obbligatorio allegare il referto"
+    	}), 400
+
     # CONTROLLI CAMPI OBBLIGATORI
 
     if (
@@ -788,77 +1407,9 @@ def create_report():
 
         return jsonify({
             "message":
-            "Compila tutti i campi obbligatori"
+            "Attenzione!Si prega di compilare tutti i campi obbligatori"
         }), 400
 
-    # CONTROLLO VISITA ESISTENTE
-
-    appointment = Appointment.query.get(
-        appointment_id
-    )
-
-    if not appointment:
-
-        return jsonify({
-            "message":
-            "ID Visita non presente nel sistema"
-        }), 400
-
-    # CONTROLLO REFERTO DUPLICATO
-
-    existing_report = MedicalReport.query.filter_by(
-        appointment_id=appointment_id
-    ).first()
-
-    if existing_report:
-
-        return jsonify({
-            "message":
-            "Referto già presente per questa visita"
-        }), 409
-
-    # CONTROLLO PAZIENTE ASSOCIATO ALLA VISITA
-
-    patient = Patient.query.get(
-        appointment.patient_id
-    )
-
-    if not patient:
-
-        return jsonify({
-            "message":
-            "Paziente non trovato"
-        }), 404
-
-    # CONTROLLO NOME
-
-    if patient.name.strip().lower() != \
-       patient_name.strip().lower():
-
-        return jsonify({
-            "message":
-            "Nome paziente non coerente con la visita"
-        }), 400
-
-    # CONTROLLO COGNOME
-
-    if patient.surname.strip().lower() != \
-       patient_surname.strip().lower():
-
-        return jsonify({
-            "message":
-            "Cognome paziente non coerente con la visita"
-        }), 400
-
-    # CONTROLLO CODICE FISCALE
-
-    if patient.fiscal_code.strip().upper() != \
-       fiscal_code.strip().upper():
-
-        return jsonify({
-            "message":
-            "Codice fiscale non coerente con la visita"
-        }), 400
 
     # UPLOAD FILE
 
@@ -903,6 +1454,9 @@ def create_report():
         "message":
         "Referto creato con successo"
     })
+
+
+
 
 
 
@@ -972,6 +1526,86 @@ def get_reports():
 
 
 
+
+
+
+#REPORTS BY DOCTOR
+
+@app.route(
+    '/api/reports-by-doctor/<doctor>',
+    methods=['GET']
+)
+def get_reports_by_doctor(doctor):
+
+    doctor_obj = Doctor.query.filter_by(
+        name=doctor
+    ).first()
+
+    if not doctor_obj:
+        return jsonify([])
+
+    appointments = Appointment.query.filter_by(
+        doctor_id=doctor_obj.id
+    ).all()
+
+    appointment_ids = [
+        a.id for a in appointments
+    ]
+
+    reports = MedicalReport.query.all()
+
+    result = []
+
+    for r in reports:
+
+        if r.appointment_id not in appointment_ids:
+            continue
+
+        appointment = Appointment.query.get(
+            r.appointment_id
+        )
+
+        patient = Patient.query.get(
+            appointment.patient_id
+        ) if appointment else None
+
+        result.append({
+
+            "id": r.id,
+
+            "appointment_id":
+                r.appointment_id,
+
+            "name":
+                patient.name if patient else "",
+
+            "surname":
+                patient.surname if patient else "",
+
+            "fiscal_code":
+                r.fiscal_code,
+
+            "attachment":
+                r.attachment,
+
+            "notes":
+                r.notes,
+
+            "date":
+                appointment.date if appointment else "",
+
+            "visit_type":
+                appointment.description if appointment else ""
+        })
+
+    return jsonify(result)
+
+
+
+
+
+
+
 # INITIALIZATION DB + DATI DI DEFAULT
 
 CONFIG_FILE = "config_medici.xlsx"
@@ -988,6 +1622,21 @@ try:
         sheet_name="TURNI"
     )
 
+    SPECIALIZZAZIONI.columns = (
+        SPECIALIZZAZIONI.columns
+        .astype(str)
+        .str.strip()
+        .str.upper()
+    )
+
+    TURNI.columns = (
+        TURNI.columns
+        .astype(str)
+        .str.strip()
+        .str.upper()
+    )
+
+
     print("Configurazione medici caricata")
 
 except Exception as e:
@@ -1000,89 +1649,25 @@ except Exception as e:
 
     TURNI = pd.DataFrame()
 
-if __name__ == "__main__":
+with app.app_context():
 
-    with app.app_context():
+    db.create_all()
 
-        db.create_all()
+    if Doctor.query.count() == 0:
 
-        # =========================
-        # PERSONALE SANITARIO
-        # =========================
-
-        admin_exists = User.query.filter_by(
-            username="admin"
-        ).first()
-
-        if not admin_exists:
+        for doctor_name in SPECIALIZZAZIONI["MEDICO"].unique():
 
             db.session.add(
-
-                User(
-
-                    username="admin",
-
-                    password="admin",
-
-                    role="staff"
-                )
+                Doctor(name=doctor_name)
             )
-
-        # =========================
-        # MEDICI SPECIALISTI
-        # =========================
-
-        specialists = [
-
-            "rossi",
-
-            "bianchi",
-
-            "verdi"
-        ]
-
-        for specialist in specialists:
-
-            existing = User.query.filter_by(
-                username=specialist
-            ).first()
-
-            if not existing:
-
-                db.session.add(
-
-                    User(
-
-                        username=specialist,
-
-                        password="12345",
-
-                        role="doctor"
-                    )
-                )
-
-        # =========================
-        # CREA MEDICI
-        # =========================
-
-        if not Doctor.query.first():
-
-            db.session.add_all([
-
-                Doctor(name="Rossi"),
-
-                Doctor(name="Bianchi"),
-
-                Doctor(name="Verdi")
-            ])
 
         db.session.commit()
 
-    app.run(debug=True)
 
+if __name__ == "__main__":
 
-
-
-
-
-
+    app.run(
+        debug=True,
+        host="0.0.0.0",
+        port=5000
+    )

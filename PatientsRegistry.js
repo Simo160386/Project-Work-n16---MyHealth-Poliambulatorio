@@ -9,6 +9,10 @@ window.onload = function () {
 
 
 
+
+
+
+
 // CARICA PAZIENTI
 
 function loadPatients() {
@@ -25,9 +29,25 @@ function loadPatients() {
         body.innerHTML = "";
 
         data.forEach(p => {
+		
+		let formattedBirthDate = p.birth_date;
 
-            const tr =
-                document.createElement("tr");
+    		if (
+        		p.birth_date &&
+       	 		p.birth_date.includes("-")
+    		) {
+
+        		const parts =
+            			p.birth_date.split("-");
+
+        		formattedBirthDate =
+            			`${parts[2]}-${parts[1]}-${parts[0]}`;
+    		}
+
+    		const tr =
+        		document.createElement("tr");
+
+            
 		tr.innerHTML = `
 
     			<td>${p.id}</td>
@@ -37,8 +57,7 @@ function loadPatients() {
     			<td>${p.surname}</td>
 
     			<td id="birthCell_${p.id}">
-    				${p.birth_date}
-
+    				${formattedBirthDate}
 			</td>
 
 			<td>${p.gender}</td>
@@ -87,6 +106,10 @@ function loadPatients() {
 
 
 
+
+
+
+
 // RICERCA PAZIENTE
 
 function filterPatients() {
@@ -113,6 +136,8 @@ function filterPatients() {
             "#patientsBody tr"
         );
 
+    let found = false;
+
     rows.forEach(row => {
 
         const cells =
@@ -121,12 +146,14 @@ function filterPatients() {
         const patientName =
             cells[1]
             .textContent
-            .toLowerCase();
+            .toLowerCase()
+            .trim();
 
         const patientSurname =
             cells[2]
             .textContent
-            .toLowerCase();
+            .toLowerCase()
+            .trim();
 
         const matchName =
             patientName.includes(nameInput);
@@ -136,13 +163,50 @@ function filterPatients() {
                 surnameInput
             );
 
-        row.style.display =
+        const visible =
+            matchName &&
+            matchSurname;
 
-            (matchName && matchSurname)
-            ? ""
-            : "none";
+        row.style.display =
+            visible ? "" : "none";
+
+        if (visible) {
+
+            found = true;
+        }
     });
+
+    if (
+        !found &&
+        (nameInput || surnameInput)
+    ) {
+
+        alert(
+            "Nome e/o Cognome non validi o non presenti nel sistema"
+        );
+
+        rows.forEach(row => {
+
+            row.style.display = "";
+
+        });
+
+        document.getElementById(
+            "searchName"
+        ).value = "";
+
+        document.getElementById(
+            "searchSurname"
+        ).value = "";
+
+        document.getElementById(
+            "searchName"
+        ).focus();
+    }
 }
+
+
+
 
 
 
@@ -200,13 +264,20 @@ function updatePatient(id) {
         }
     )
 
-    .then(res => res.json())
+    .then(async res => {
 
-    .then(data => {
+    const data = await res.json();
+
+    if (!res.ok) {
 
         alert(data.message);
 
-        loadPatients();
+        return;
+    }
+
+    alert(data.message);
+
+    loadPatients();
     })
 
     .catch(err => {
@@ -218,6 +289,10 @@ function updatePatient(id) {
         );
     });
 }
+
+
+
+
 
 
 
@@ -253,6 +328,19 @@ function togglePatientEdit(id) {
 
         const birth =
             birthCell.textContent.trim();
+	let birthForInput = birth;
+
+	if (
+    		birth.includes("-") &&
+   	 	birth.split("-").length === 3
+	) {
+
+    		const parts =
+        		birth.split("-");
+
+    		birthForInput =
+        		`${parts[2]}-${parts[1]}-${parts[0]}`;
+	}
 
         const phone =
             phoneCell.textContent.trim();
@@ -264,11 +352,11 @@ function togglePatientEdit(id) {
             cfCell.textContent.trim();
 
         birthCell.innerHTML = `
-            <input
-                type="date"
-                id="birth_${id}"
-                value="${birth}">
-        `;
+    		<input
+        		type="date"
+        		id="birth_${id}"
+        		value="${birthForInput}">
+	`;
 
         phoneCell.innerHTML = `
             <input
