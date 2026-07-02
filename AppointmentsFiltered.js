@@ -36,11 +36,23 @@ function loadFilteredAppointments() {
                 "filter_description"
             );
 
-        const filterDate =
+        let filterDate =
 
-            sessionStorage.getItem(
-                "filter_date"
-            );
+    		sessionStorage.getItem(
+        		"filter_date"
+    		);
+
+	if (
+    		filterDate &&
+    		filterDate.includes("-")
+	) {
+
+    		const parts =
+        		filterDate.split("-");
+
+    		filterDate =
+        		`${parts[2]}/${parts[1]}/${parts[0]}`;
+	}
 
         const filterHour =
 
@@ -242,7 +254,7 @@ function downloadPDF() {
     doc.setFontSize(18);
 
     doc.text(
-        "Report Visite Prenotate",
+        "Elenco Visite",
         14,
         20
     );
@@ -370,7 +382,7 @@ function downloadDOC() {
         <body>
 
             <h1>
-                Report Visite Prenotate
+                Elenco Visite
             </h1>
 
             ${table.outerHTML}

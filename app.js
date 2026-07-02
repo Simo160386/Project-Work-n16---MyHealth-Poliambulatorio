@@ -19,12 +19,42 @@ function loginStaff() {
 
 function loginDoctor() {
 
-    const username =document.getElementById("username_doctor").value;
+   
 
-    const password =document.getElementById("password_doctor").value;
+    const username = document.getElementById("username_doctor").value.trim();
 
-    loginUser(username,password);
+    const password = document.getElementById("password_doctor").value;
+
+    // Prima lettera maiuscola
+    // resto minuscolo
+
+    const formatoCorretto =
+    /^([A-Z][a-z]+)(\s[A-Z][a-z]+)*$/;
+
+    if (!formatoCorretto.test(username)) {
+
+        alert(
+              "Attenzione: Inserire username correttamente(prima lettera maiuscola)"
+        );
+	
+	 document.getElementById(
+            "username_doctor"
+        ).value = "";
+
+	document.getElementById(
+            "password_doctor"
+        ).value = "";
+
+        document.getElementById(
+            "username_doctor"
+        ).focus();
+
+        return;
+    }
+
+    loginUser(username, password);
 }
+
 
 
 
@@ -53,7 +83,7 @@ function loginUser(username,password) {
 
           if (!data.success) {
 
-    		alert("Login fallito");
+    		alert("Attenzione: Credenziali inserite non sono corrette!");
 
     		// Pulisce entrambi i form
 
@@ -88,10 +118,20 @@ function loginUser(username,password) {
             data.role
         );
 	
-	sessionStorage.setItem(
-    		"username",
-    		username
-	);
+	if (data.role === "staff") {
+
+    		sessionStorage.setItem(
+    	    		"username",
+        		"Staff"
+    		);
+
+	} else {
+
+    		sessionStorage.setItem(
+        		"username",
+        		username
+    	   	);
+	}
 	
 	document.getElementById(
     		"username_staff"
@@ -125,7 +165,10 @@ function loginUser(username,password) {
                 "staff-dashboard"
             ).style.display = "block";
 
-
+	    document.getElementById(
+    		"logged-user"
+	    ).innerHTML =
+    		"👨‍💼 Logged: <strong>Staff</strong>";
 
 
             loadPatientsSelect();
@@ -137,10 +180,17 @@ function loginUser(username,password) {
 
         if (data.role === "doctor") {
 
-            document.getElementById(
-                "doctor-dashboard"
-            ).style.display = "block";
-        }
+    		document.getElementById(
+        		"doctor-dashboard"
+    		).style.display = "block";
+
+    		document.getElementById(
+        		"logged-user-doctor"
+    		).innerHTML =
+        		"👨‍⚕️ Logged: <strong>" +
+        		username +
+        		"</strong>";
+	}
     });
 }
 
@@ -148,10 +198,6 @@ function loginUser(username,password) {
 
 
 const API = "http://127.0.0.1:5000";
-
-let selectedDoctorId = null;
-let selectedDoctorName = null;
-
 
 
 
@@ -164,6 +210,42 @@ window.onload = function () {
 
     const role =
         sessionStorage.getItem("role");
+
+    const username =
+    	sessionStorage.getItem(
+        	"username"
+    	);
+
+    if (role === "staff") {
+
+    	const staffUser =
+        	document.getElementById(
+            		"logged-user"
+        	);
+
+    	if (staffUser) {
+
+        	staffUser.innerHTML =
+            		"👨‍💼 Logged: <strong>Staff</strong>";
+    	}
+    }
+
+    if (role === "doctor") {
+
+    	const doctorUser =
+        	document.getElementById(
+            		"logged-user-doctor"
+        	);
+
+    	if (doctorUser) {
+
+        	doctorUser.innerHTML =
+            		"👨‍⚕️ Logged: <strong>" +
+            		username +
+            		"</strong>";
+    	}
+    }
+
 
 
 
@@ -240,6 +322,8 @@ window.onload = function () {
 function logout() {
 
     sessionStorage.removeItem("loggedIn");
+    sessionStorage.removeItem("username");
+    sessionStorage.removeItem("role");
 
     	document.getElementById("staff-dashboard").style.display = "none";
 
@@ -258,51 +342,6 @@ function logout() {
 
 
 
-
-
-
-
-
-
-
-
-
-// LOAD DOCTORS (dropdown)
-
-function loadDoctors() {
-
-	
-
-    fetch(API + "/api/doctors")
-
-    .then(res => res.json())
-
-    .then(data => {
-
-        const select =
-            document.getElementById(
-                "doctor_select"
-            );
-
-        select.innerHTML =
-
-            `<option value="">
-                Seleziona Medico
-            </option>`;
-
-        data.forEach(d => {
-
-            const option =
-                document.createElement("option");
-
-            option.value = d.id;
-
-            option.textContent = d.name;
-
-            select.appendChild(option);
-        });
-    });
-}
 
 
 
@@ -343,6 +382,9 @@ function loadPatientsSelect() {
         alert("Errore caricamento pazienti");
     });
 }
+
+
+
 
 
 
@@ -484,50 +526,6 @@ function loadPatients() {
 
 
 
-
-// CREATE PATIENT
-
-function createPatient() {
-    const name = document.getElementById("name").value;
-    const surname = document.getElementById("surname").value;
-
-    if (!name || !surname) {
-        alert("Attenzione!Si prega di compilare tutti i campi");
-        return;
-    }
-
-    fetch(API + "/api/patients", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ name, surname })
-    })
-    .then(res => res.json())
-    .then(data => {
-
-    alert(data.message);
-
-    // aggiorna lista se visibile
-    const container = document.getElementById("patients-container");
-
-    if (container.style.display === "block") {
-        loadPatients();
-    }
-
-      loadPatientsSelect();
-
- });
-
-}
-
-
-
-
-
-
-
-
-
-
 // OPEN PATIENTPAGE
 
 
@@ -612,9 +610,7 @@ function createAppointment() {
 
         document.getElementById("description").selectedIndex = 0;
 
-        selectedDoctorId = null;
-	selectedDoctorName = null;
-
+	
         document.getElementById("date").innerHTML =
             '<option value="">Seleziona Data</option>';
 
@@ -642,7 +638,7 @@ function createAppointment() {
 
 
 
-// DELETE APPOINTMENT
+// DELETE APPOINTMENT-----------------------------------------
 
 function deleteAppointmentById() {
 
@@ -679,7 +675,7 @@ function deleteAppointmentById() {
 
 
 
-// SEARCH APPOINTMENT
+// SEARCH APPOINTMENT----------------------
 
 function searchAppointment() {
 
@@ -703,7 +699,7 @@ function searchAppointment() {
 
   
 
-// RICERCA PER ID
+// RICERCA PER ID-------------------------
 
     if (appointmentId) {
 
@@ -736,15 +732,20 @@ function searchAppointment() {
 
             if (!appointment) {
 
-                container.innerHTML = `
+    		alert(
+        		"ATTENZIONE: PRENOTAZIONE INESISTENTE!"
+    		);
 
-                    <p>
-                        ATTENZIONE: PRENOTAZIONE INESISTENTE!
-                    </p>
-                `;
+    		document.getElementById(
+        		"searchAppointmentId"
+    		).value = "";
 
-                return;
-            }
+    		document.getElementById(
+        		"searchAppointmentId"
+    		).focus();
+
+    		return;
+	    }
 	   container.innerHTML = `
 
 <div class="appointment-result">
@@ -891,7 +892,7 @@ ${appointment.status === "Prenotata" ? `
 
 
 
-// RICERCA PER CODICE FISCALE
+// RICERCA PER CODICE FISCALE----------------------------------------
 
 	if (fiscalCode) {
 
@@ -944,7 +945,7 @@ ${appointment.status === "Prenotata" ? `
 	}
 
     alert(
-        "Inserisci ID prenotazione o codice fiscale"
+        "Attenzione: Inserire ID prenotazione o Codice Fiscale"
     );
 }
 
@@ -957,7 +958,7 @@ ${appointment.status === "Prenotata" ? `
 
 
 
-// DELETE APPOINTMENT
+// DELETE APPOINTMENT--------------------------------------
 
 function deleteAppointment(id) {
 
@@ -1206,7 +1207,10 @@ function openFilteredAppointmentsPage() {
 
     if (rawDate) {
 
-        const formattedDate = rawDate;
+    	const parts = rawDate.split("-");
+
+    	formattedDate =
+        	`${parts[2]}/${parts[1]}/${parts[0]}`;
     }
 
     sessionStorage.setItem(
@@ -1301,8 +1305,6 @@ function openDoctorFilteredAppointmentsPage() {
     window.location.href =
         "AppointmentsFiltered.html";
 }
-
-
 
 
 
@@ -1455,38 +1457,6 @@ function toggleEditForm(id) {
 
 
 
-
-
-function loadAvailableDates() {
-
-    const doctorName = selectedDoctorName;
-
-    fetch(
-        API +
-        "/api/available-dates/" +
-        doctorName
-    )     
-
-    .then(res => res.json())
-
-    .then(data => {
-
-        const dateSelect =
-            document.getElementById("date");
-
-        dateSelect.innerHTML =
-            '<option value="">Seleziona Data</option>';
-
-        data.forEach(d => {
-
-            dateSelect.innerHTML +=
-
-                `<option value="${d}">
-                    ${d}
-                </option>`;
-        });
-    });
-}
 
 
 

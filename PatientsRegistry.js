@@ -225,6 +225,14 @@ function updatePatient(id) {
         document.getElementById(
             `birth_${id}`
         ).value;
+	if (!birth_date) {
+
+    		alert(
+        		"La data di nascita è obbligatoria"
+    		);
+
+    		return;
+	}
 
     const phone =
         document.getElementById(

@@ -76,12 +76,12 @@ function createPatient() {
     .then(res => res.json())
     .then(data => {
 
-        alert(data.message);
+    	alert(data.message);
 
-        if (data.message === "Paziente creato con successo!") {
+    	if (data.success) {
 
-            window.location.href = "index.html";
-        }
+        	window.location.href = "index.html";
+    	}
     })
     .catch(err => {
 

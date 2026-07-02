@@ -285,4 +285,425 @@ function goBackDashboard() {
 }
 
 
+
+
+
+
+
+#ORE DISPONIBILI PER VISITA
+
+
+@app.route(
+    "/api/available-hours/<doctor>/<path:date>",
+    methods=["GET"]
+)
+def available_hours(doctor, date):
+
+    turni = TURNI.copy()
+
+    turni["GIORNO_FORMATTATO"] = pd.to_datetime(
+        turni["GIORNO"]
+    ).dt.strftime("%d-%m-%Y")
+
+    filtered = turni[
+        (
+            turni["MEDICO"]
+            .astype(str)
+            .str.strip()
+            .str.lower()
+            ==
+            doctor.strip().lower()
+        )
+        &
+        (
+            turni["GIORNO_FORMATTATO"]
+            ==
+            date
+        )
+    ]
+
+    hours = []
+
+    from datetime import datetime
+
+    for _, row in filtered.iterrows():
+
+        start = datetime.strptime(
+            str(row["DALLE"])[:5],
+            "%H:%M"
+        ).hour
+
+        end = datetime.strptime(
+            str(row["ALLE"])[:5],
+            "%H:%M"
+        ).hour
+
+        for h in range(start, end + 1):
+
+            hours.append(
+                f"{h:02d}:00"
+            )
+
+    doctor_obj = Doctor.query.filter(
+        Doctor.name == doctor
+    ).first()
+
+    occupied = []
+
+    if doctor_obj:
+
+        appointments = Appointment.query.filter_by(
+            doctor_id=doctor_obj.id,
+            status="Prenotata"
+        ).all()
+
+        occupied = [
+            a.hour
+            for a in appointments
+        ]
+
+    available_hours = [
+
+        h for h in hours
+
+        if h not in occupied
+    ]
+
+    return jsonify(
+        available_hours
+    )
+
+
+
+
+
+
+
+
+#AVAILABLE DATES 
+
+@app.route(
+    "/api/available-dates/<doctor>",
+    methods=["GET"]
+)
+def available_dates(doctor):
+
+    filtered = TURNI[
+        TURNI["MEDICO"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        ==
+        doctor.strip().lower()
+    ]
+
+    dates = []
+
+    for _, row in filtered.iterrows():
+
+        date_value = pd.to_datetime(
+            row["GIORNO"]
+        )
+
+        dates.append(
+            date_value.strftime("%d/%m/%Y")
+        )
+
+    return jsonify(dates)
+
+
+
+
+
+
+// CREATE PATIENT
+
+function createPatient() {
+    const name = document.getElementById("name").value;
+    const surname = document.getElementById("surname").value;
+
+    if (!name || !surname) {
+        alert("Attenzione!Si prega di compilare tutti i campi");
+        return;
+    }
+
+    fetch(API + "/api/patients", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ name, surname })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+    alert(data.message);
+
+    // aggiorna lista se visibile
+    const container = document.getElementById("patients-container");
+
+    if (container.style.display === "block") {
+        loadPatients();
+    }
+
+      loadPatientsSelect();
+
+ });
+
+}
+
+
+
+
+
+
+
+
+
+
+
+function loadAvailableDates() {
+
+    const doctorName = selectedDoctorName;
+
+    fetch(
+        API +
+        "/api/available-dates/" +
+        doctorName
+    )     
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        const dateSelect =
+            document.getElementById("date");
+
+        dateSelect.innerHTML =
+            '<option value="">Seleziona Data</option>';
+
+        data.forEach(d => {
+
+            dateSelect.innerHTML +=
+
+                `<option value="${d}">
+                    ${d}
+                </option>`;
+        });
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// LOAD DOCTORS (dropdown)
+
+function loadDoctors() {
+
+	
+
+    fetch(API + "/api/doctors")
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        const select =
+            document.getElementById(
+                "doctor_select"
+            );
+
+        select.innerHTML =
+
+            `<option value="">
+                Seleziona Medico
+            </option>`;
+
+        data.forEach(d => {
+
+            const option =
+                document.createElement("option");
+
+            option.value = d.id;
+
+            option.textContent = d.name;
+
+            select.appendChild(option);
+        });
+    });
+}
+
+
+
+
+
+
+
+
+patient_name = request.form.get(
+        "patient_name"
+    )
+
+    patient_surname = request.form.get(
+        "patient_surname"
+    )
+
+    fiscal_code = request.form.get(
+        "fiscal_code"
+    )
+
+
+
+
+
+
+
+
+
+@app.route('/api/reports', methods=['POST'])
+def create_report():
+
+    appointment_id = request.form.get(
+        "appointment_id"
+    )
+
+    appointment = Appointment.query.get(
+        appointment_id
+    )
+
+    if not appointment:
+
+        return jsonify({
+
+            "message":
+            "Visita non trovata"
+
+        }), 404
+
+    
+    notes = request.form.get(
+        "notes"
+    )
+
+    file = request.files.get(
+        "attachment"
+    )
+
+    if not file or file.filename == "":
+
+    	return jsonify({
+        	"message":
+       		"Attenzione!Obbligatorio allegare il referto"
+    	}), 400
+
+	filename = secure_filename(
+            file.filename
+        )
+
+        file.save(
+            os.path.join(
+                app.config["UPLOAD_FOLDER"],
+                filename
+            )
+        )
+
+    # CONTROLLI CAMPI OBBLIGATORI
+
+    if (
+        not appointment_id or
+        not patient_name or
+        not patient_surname or
+        not fiscal_code
+    ):
+
+        return jsonify({
+            "message":
+            "Attenzione!Si prega di compilare tutti i campi obbligatori"
+        }), 400
+
+
+    # UPLOAD FILE
+
+    report = MedicalReport(
+
+        appointment_id=appointment_id,
+
+        name=patient_name,
+
+        surname=patient_surname,
+
+        fiscal_code=fiscal_code,
+
+        attachment=filename,
+
+        notes=notes
+    )
+
+    db.session.add(report)
+
+    appointment.status = "Completata"
+
+    db.session.commit()
+
+    return jsonify({
+
+        "message":
+        "REFERTO CREATO CON SUCCESSO!"
+    })
+
+
+
+
+
+
+
+
+
+
+doctor = Doctor.query.get(a.doctor_id)
+patient = Patient.query.get(a.patient_id)
+
+
+
+doctor = Doctor.query.get(a.doctor_id
+
+
+
+
+appointment = Appointment.query.get(id)
+
+
+appointment = Appointment.query.get(id)
+
+
+appointment = Appointment.query.get(appointment_id)
+
+
+patient = Patient.query.get(id)
+
+
+
+
+appointment = Appointment.query.get(r.appointment_id)
+
+
+patient = Patient.query.get(appointment.patient_id)
+
+
+
+patient = Patient.query.get(a.patient_id)
+
+
+appointment = Appointment.query.get(appointment_id)
+
+patient = Patient.query.get(appointment.patient_id)
 			

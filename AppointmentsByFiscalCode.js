@@ -74,48 +74,68 @@ function loadAppointments() {
 
                 <td>${a.id}</td>
 
-                <td>${a.fiscal_code}</td>
-
                 <td>${a.name}</td>
 
                 <td>${a.surname}</td>
+
+		<td>${a.fiscal_code}</td>
 
                 <td>${a.date}</td>
 
                 <td>${a.hour}</td>
 
                 <td>${a.description}</td>
-		
-	
+
+		<td>${a.doctor}</td>
+
+		<td>
+    			${
+        			a.status === "Completata"
+        			? '<span class="status-erogata">EROGATA</span>'
+        			: '<span class="status-non-erogata">NON EROGATA</span>'
+    			}
+		</td>
 
 
                 <td>
 
-    			<button
-        			class="edit-icon-btn"
-        			onclick="
-            				toggleEditForm(${a.id})
-        			"
-        			title="Modifica Prenotazione">
+    			${
+        			a.status === "Completata"
 
-        			<i class="fa-solid fa-pen"></i>
+        			? '<span style="color:#2e7d32;font-weight:bold;">-</span>'
 
-    			</button>
+        			:
+
+        			`<button
+            				class="edit-icon-btn"
+            				onclick="toggleEditForm(${a.id})"
+            				title="Modifica Prenotazione">
+
+            				<i class="fa-solid fa-pen"></i>
+
+        			</button>`
+    			}
 
 		</td>
 
 		<td>
 
-    			<button
-        			class="delete-icon-btn"
-        			onclick="
-            				deleteAppointment(${a.id})
-        			"
-        			title="Elimina Prenotazione">
+    			${
+        			a.status === "Completata"
 
-        			<i class="fa-solid fa-trash"></i>
+        			? '<span style="color:#2e7d32;font-weight:bold;">-</span>'
 
-    			</button>
+        			:
+
+       				 `<button
+            				class="delete-icon-btn"
+            				onclick="deleteAppointment(${a.id})"
+            				title="Elimina Prenotazione">
+
+            				<i class="fa-solid fa-trash"></i>
+
+        			</button>`
+    			}
 
 		</td>
             `;

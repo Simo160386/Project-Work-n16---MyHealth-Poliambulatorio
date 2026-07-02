@@ -9,6 +9,12 @@ window.onload = function () {
 
 
 
+
+
+
+
+
+
 function loadDoctorAppointments() {
 
     const doctorName =
@@ -62,35 +68,25 @@ function loadDoctorAppointments() {
 
 
 
+
+
+
+
+
 function loadAppointmentData() {
 
-    const select =
+    const select = document.getElementById("appointment_select");
 
-        document.getElementById(
-            "appointment_select"
-        );
+    const option = select.options[select.selectedIndex];
 
-    const option =
+    document.getElementById("patient_name").value = option.dataset.name || "";
 
-        select.options[
-            select.selectedIndex
-        ];
+    document.getElementById("patient_surname").value =option.dataset.surname || "";
 
-    document.getElementById(
-        "patient_name"
-    ).value =
-        option.dataset.name || "";
-
-    document.getElementById(
-        "patient_surname"
-    ).value =
-        option.dataset.surname || "";
-
-    document.getElementById(
-        "fiscal_code"
-    ).value =
-        option.dataset.cf || "";
+    document.getElementById("fiscal_code").value = option.dataset.cf || "";
 }
+
+
 
 
 
@@ -101,40 +97,22 @@ function loadAppointmentData() {
 
 function createReport() {
 
-    const appointment_id =
-    	document.getElementById(
-        	"appointment_select"
-    	).value;
+    const appointment_id = document.getElementById("appointment_select").value;
 
-    const patient_name =
-        document.getElementById(
-            "patient_name"
-        ).value.trim();
+    const patient_name = document.getElementById("patient_name").value.trim();
 
-    const patient_surname =
-        document.getElementById(
-            "patient_surname"
-        ).value.trim();
+    const patient_surname = document.getElementById("patient_surname").value.trim();
 
-    const fiscal_code =
-        document.getElementById(
-            "fiscal_code"
-        ).value.trim();
+    const fiscal_code = document.getElementById("fiscal_code").value.trim();
 
-    const notes =
-        document.getElementById(
-            "notes"
-        ).value.trim();
+    const notes = document.getElementById("notes").value.trim();
 
-    const attachment =
-        document.getElementById(
-            "attachment"
-        ).files[0];
+    const attachment = document.getElementById("attachment").files[0];
 
     if (!attachment) {
 
     	alert(
-        	"Obbligatorio allegare il referto"
+        	"ATTENZIONE: Obbligatorio allegare il referto"
    	);
 
     	return;
@@ -149,7 +127,7 @@ function createReport() {
     ) {
 
         alert(
-            "Compila tutti i campi obbligatori"
+            "ATTENZIONE: Compila tutti i campi obbligatori"
         );
 
         return;
@@ -257,6 +235,13 @@ function createReport() {
 
 
 
+
+
+
+
+
+
+
 // LOAD REPORTS
 
 function loadReports() {
@@ -342,6 +327,12 @@ function loadReports() {
 
 
 
+
+
+
+
+
+
 // FILTER REPORTS
 
 function filterReports() {
@@ -422,7 +413,7 @@ function filterReports() {
      ) {
 
     	alert(
-        	"Codice Fiscale errato e/o inesistente"
+        	"Attenzione: ID Visita o Codice Fiscale errato e/o inesistente!"
     	);
 
     	rows.forEach(row => {

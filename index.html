@@ -22,6 +22,8 @@
 
     <div class="container">
 
+	
+
 
 
         <!-- ===================================== -->
@@ -29,6 +31,14 @@
         <!-- ===================================== -->
 
         <div id="login-section">
+
+		<div class="login-logo-container">
+    		<img
+        		src="logo.png"
+                        alt="MyHealth Logo"
+                        class="login-logo-myhealth">
+    		
+		</div>
 
             <div class="login-wrapper">
 
@@ -122,7 +132,11 @@
 
                     Logout
 
-                </button>
+                </button>	
+
+		<div id="logged-user" class="logged-user">
+    		     Logged: Staff
+		</div>
 
             </div>
 
@@ -388,24 +402,27 @@
 
             <div class="dashboard-header">
 
-                <div class="logo-title">
+    		<div class="logo-title">
 
-                    <img
-                        src="logo.png"
-                        class="logo">
+        		<img
+            			src="logo.png"
+            			class="logo">
 
-                    
-                </div>
+    		</div>
 
-                <button
-                    onclick="logout()"
-                    class="btn-red logout-btn">
+    		<button
+        		onclick="logout()"
+        		class="btn-red logout-btn">
 
-                    Logout
+        		Logout
 
-                </button>
+    		</button>
 
-            </div>
+    		<div id="logged-user-doctor" class="logged-user">
+    			👨‍⚕️ Logged: 
+		</div>
+
+	   </div>
 
             <div class="dashboard">
 

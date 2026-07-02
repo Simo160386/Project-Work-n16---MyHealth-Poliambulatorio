@@ -14,6 +14,7 @@ from werkzeug.utils import secure_filename
 
 
 
+#CONFIGURAZIONE INIZIALE FLASK
 
 app = Flask(__name__)
 CORS(app)
@@ -21,11 +22,10 @@ CORS(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///healthcare.db'
 db = SQLAlchemy(app)
+
+
 UPLOAD_FOLDER = "uploads"
-
-
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
@@ -38,25 +38,22 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # MODELS e CLASSES
 
 
+
 class User(db.Model):
 
-    		id = db.Column(db.Integer,primary_key=True)
-
-    		username = db.Column(db.String(50),unique=True)
-
-    		password = db.Column(db.String(50))
-
-    		role = db.Column(db.String(50))
+    id = db.Column(db.Integer,primary_key=True)
+    username = db.Column(db.String(50),unique=True)
+    password = db.Column(db.String(50))
+    role = db.Column(db.String(50))
 
 
 
 
 class Patient(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
 
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     surname = db.Column(db.String(100))
-
     birth_date = db.Column(db.String(20))
     gender = db.Column(db.String(10))
     phone = db.Column(db.String(30),unique=True)
@@ -70,6 +67,7 @@ class Patient(db.Model):
 
 
 class Doctor(db.Model):
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
 
@@ -79,17 +77,11 @@ class Doctor(db.Model):
 class Appointment(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-
     date = db.Column(db.String(20))
-
     hour = db.Column(db.String(10))
-
     description = db.Column(db.String(200))
-
     patient_id = db.Column(db.Integer)
-
     doctor_id = db.Column(db.Integer)
-
     status = db.Column(
         db.String(20),
         default="Prenotata"
@@ -100,17 +92,11 @@ class Appointment(db.Model):
 class MedicalReport(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-
     appointment_id = db.Column(db.Integer)
-
     name = db.Column(db.String(100))
-
     surname = db.Column(db.String(100))
-
     fiscal_code = db.Column(db.String(16))
-
     attachment = db.Column(db.String(255))
-
     notes = db.Column(db.String(1000))
 
 
@@ -122,7 +108,11 @@ class MedicalReport(db.Model):
 
 
 
-# LOGIN
+
+
+
+
+# API/ LOGIN----------------------------------------
 
 
 @app.route('/api/login', methods=['POST'])
@@ -134,6 +124,8 @@ def login():
     password = data['password']
 
 
+
+
     # PERSONALE SANITARIO
     if username == "admin" and password == "admin":
 
@@ -143,9 +135,11 @@ def login():
         })
 
 
+
+
     # MEDICI SPECIALISTI
     doctor = Doctor.query.filter(
-    	Doctor.name.ilike(f"%{username}%")
+    	Doctor.name.ilike(username)
     ).first()
 
     if doctor and password == "12345":
@@ -166,8 +160,9 @@ def login():
 
 
 
-# CREATE PATIENT
 
+
+# API/ CREATE PATIENT---------------------------------
 
 @app.route('/api/patients', methods=['POST'])
 def create_patient():
@@ -231,7 +226,6 @@ def create_patient():
             "Attenzione: Si prega di compilare tutti i campi"
     	}), 400
 
-    # VALIDAZIONE EMAIL
     # VALIDAZIONE EMAIL
 
     email = email.lower()
@@ -318,7 +312,8 @@ def create_patient():
     db.session.commit()
 
     return jsonify({
-        "message": "PAZIENTE CREATO CON SUCCESSO!"
+        	"success" : True,
+		"message": "PAZIENTE CREATO CON SUCCESSO!"
     })
 
 
@@ -327,7 +322,9 @@ def create_patient():
 
 
 
-# GET DOCTORS
+
+
+# API/ GET DOCTORS--------------------------------------------------
 
 
 @app.route('/api/doctors', methods=['GET'])
@@ -391,7 +388,15 @@ def get_doctor_schedules():
 
 
 
-# DATE DISPONIBILI PER VISITA
+
+
+
+
+
+
+
+
+# API/ DATE DISPONIBILI PER VISITA-------------------
 
 @app.route(
     "/api/available-dates-by-visit/<visit>",
@@ -448,6 +453,13 @@ def available_dates_by_visit(visit):
 
 
 
+
+
+
+
+
+#API/ ORE DISPONIBILI PER VISITA-----------------------------
+
 @app.route(
     "/api/available-hours-by-visit/<visit>/<path:date>",
     methods=["GET"]
@@ -469,6 +481,18 @@ def available_hours_by_visit(visit, date):
     doctors = rows["MEDICO"].tolist()
 
     hours = []
+
+    occupied = []
+
+    appointments = Appointment.query.filter_by(
+    		date=date,
+    		status="Prenotata"
+    ).all()
+
+    occupied = [
+    		a.hour
+    		for a in appointments
+    ]
 
     from datetime import datetime
     
@@ -499,13 +523,15 @@ def available_hours_by_visit(visit, date):
             ).hour
 
 	    
-
             for h in range(start, end + 1):
 
-                ora = f"{h:02d}:00"
+                  ora = f"{h:02d}:00"
 
-                if ora not in hours:
-                    hours.append(ora)
+                  if ora in occupied:
+                        continue
+
+                  if ora not in hours:
+                        hours.append(ora)
 
     hours.sort()
 
@@ -519,136 +545,7 @@ def available_hours_by_visit(visit, date):
 
 
 
-#ORE DISPONIBILI PER VISITA
-
-
-@app.route(
-    "/api/available-hours/<doctor>/<path:date>",
-    methods=["GET"]
-)
-def available_hours(doctor, date):
-
-    turni = TURNI.copy()
-
-    turni["GIORNO_FORMATTATO"] = pd.to_datetime(
-        turni["GIORNO"]
-    ).dt.strftime("%d-%m-%Y")
-
-    filtered = turni[
-        (
-            turni["MEDICO"]
-            .astype(str)
-            .str.strip()
-            .str.lower()
-            ==
-            doctor.strip().lower()
-        )
-        &
-        (
-            turni["GIORNO_FORMATTATO"]
-            ==
-            date
-        )
-    ]
-
-    hours = []
-
-    from datetime import datetime
-
-    for _, row in filtered.iterrows():
-
-        start = datetime.strptime(
-            str(row["DALLE"])[:5],
-            "%H:%M"
-        ).hour
-
-        end = datetime.strptime(
-            str(row["ALLE"])[:5],
-            "%H:%M"
-        ).hour
-
-        for h in range(start, end + 1):
-
-            hours.append(
-                f"{h:02d}:00"
-            )
-
-    doctor_obj = Doctor.query.filter(
-        Doctor.name == doctor
-    ).first()
-
-    occupied = []
-
-    if doctor_obj:
-
-        appointments = Appointment.query.filter_by(
-            doctor_id=doctor_obj.id,
-            status="Prenotata"
-        ).all()
-
-        occupied = [
-            a.hour
-            for a in appointments
-        ]
-
-    available_hours = [
-
-        h for h in hours
-
-        if h not in occupied
-    ]
-
-    return jsonify(
-        available_hours
-    )
-
-
-
-
-
-
-
-
-#AVAILABLE DATES 
-
-@app.route(
-    "/api/available-dates/<doctor>",
-    methods=["GET"]
-)
-def available_dates(doctor):
-
-    filtered = TURNI[
-        TURNI["MEDICO"]
-        .astype(str)
-        .str.strip()
-        .str.lower()
-        ==
-        doctor.strip().lower()
-    ]
-
-    dates = []
-
-    for _, row in filtered.iterrows():
-
-        date_value = pd.to_datetime(
-            row["GIORNO"]
-        )
-
-        dates.append(
-            date_value.strftime("%d/%m/%Y")
-        )
-
-    return jsonify(dates)
-
-
-
-
-
-
-
-
-
-# CREATE APPOINTMENT
+# API/ CREATE APPOINTMENT--------------------------------
 
 @app.route('/api/appointments', methods=['POST'])
 def create_appointment():
@@ -745,7 +642,11 @@ def create_appointment():
 
 
 
-#APPOINTMENTS BY DOCTOR
+
+
+
+
+# API/ APPOINTMENTS BY DOCTOR------------------------
 
 @app.route(
     "/api/appointments-by-doctor/<doctor>",
@@ -778,9 +679,8 @@ def appointments_by_doctor(doctor):
         if existing_report:
             continue
 
-        patient = Patient.query.get(
-            a.patient_id
-        )
+        
+        patient = db.session.get(Patient,a.patient_id)
 
         result.append({
 
@@ -813,12 +713,15 @@ def appointments_by_doctor(doctor):
 
 
 
-# MODIFICA PRENOTAZIONE
+
+
+
+# API/ MODIFICA PRENOTAZIONE---------------------------------
 
 @app.route("/api/appointments/<int:id>", methods=["PUT"])
 def update_appointment(id):
 
-    appointment = Appointment.query.get(id)
+    appointment = db.session.get(Appointment,id)
 
     if not appointment:
 
@@ -924,7 +827,10 @@ def update_appointment(id):
 
 
 
-#GET DOCTOR-VISIT
+
+
+
+#API/ GET DOCTOR-VISIT---------------------------------
 
 @app.route(
     "/api/appointment-doctor/<int:id>",
@@ -960,7 +866,10 @@ def get_appointment_doctor(id):
 
 
 
-#DETTAGLI APPUNTAMENTO
+
+
+
+#API/ APPOINTMENTS DETAILS----------------------------
 
 @app.route(
     "/api/appointment-details/<int:id>",
@@ -968,7 +877,7 @@ def get_appointment_doctor(id):
 )
 def get_appointment_details(id):
 
-    appointment = Appointment.query.get(id)
+    appointment = db.session.get(Appointment,id)
 
     if not appointment:
 
@@ -991,7 +900,10 @@ def get_appointment_details(id):
 
 
 
-# GET PATIENTS
+
+
+
+# API /GET PATIENTS---------------------------------
 
 @app.route('/api/patients', methods=['GET'])
 def get_patients():
@@ -1018,12 +930,13 @@ def get_patients():
 
 
 
-# UPDATE PATIENT
+# API /UPDATE PATIENT-------------------------------
 
 @app.route('/api/patients/<int:id>', methods=['PUT'])
 def update_patient(id):
 
-    patient = Patient.query.get(id)
+    
+    patient = db.session.get(Patient,id)
 
     if not patient:
 
@@ -1041,6 +954,8 @@ def update_patient(id):
     	"phone",
     	patient.phone
     ).strip()
+
+
 
 
     # VALIDAZIONE TELEFONO
@@ -1063,7 +978,12 @@ def update_patient(id):
         patient.fiscal_code
     ).strip().upper()
 
-        # VALIDAZIONE EMAIL
+
+
+
+
+        
+   # VALIDAZIONE EMAIL
 
     email_regex = (
         r'^[A-Za-z0-9._%+-]+'
@@ -1091,6 +1011,10 @@ def update_patient(id):
             "message":
             "Attenzione!Formato e-mail non valido"
         }), 400
+
+
+
+
 
     # VALIDAZIONE CODICE FISCALE
 
@@ -1123,6 +1047,10 @@ def update_patient(id):
         }), 400
     
 
+
+
+
+
    # CONTROLLO CF DUPLICATO
 
     existing_patient = Patient.query.filter_by(
@@ -1139,11 +1067,12 @@ def update_patient(id):
             "Attenzione!Codice fiscale già presente nel sistema"
         }), 409
 
-        
+      
+
+
+  
 
     # CONTROLLO TELEFONO DUPLICATO
-
-	    
 
     existing_phone = Patient.query.filter_by(
         phone=new_phone
@@ -1159,10 +1088,19 @@ def update_patient(id):
             "Attenzione!Numero di telefono già presente nel sistema"
         }), 409
 
-    patient.birth_date = data.get(
-        "birth_date",
-        patient.birth_date
+    birth_date = data.get(
+    	"birth_date",
+    	patient.birth_date
     )
+
+    if not birth_date:
+
+    	return jsonify({
+        	"message":
+        	"Attenzione!La data di nascita è obbligatoria"
+    	}), 400
+
+    patient.birth_date = birth_date
 
     patient.phone = new_phone
 
@@ -1174,7 +1112,7 @@ def update_patient(id):
 
     return jsonify({
         "message":
-        "PAZIENTE AGGIORNATO CON SUCCESSO!"
+        "INFO PAZIENTE AGGIORNATE CON SUCCESSO!"
     })
 
 
@@ -1184,7 +1122,10 @@ def update_patient(id):
 
 
 
-# GET APPOINTMENTS
+
+
+
+# API /GET APPOINTMENTS--------------------------------------
 
 
 @app.route('/api/appointments', methods=['GET'])
@@ -1196,8 +1137,8 @@ def get_appointments():
 
     for a in appointments:
 
-        doctor = Doctor.query.get(a.doctor_id)
-        patient = Patient.query.get(a.patient_id)
+        doctor = db.session.get(Doctor,a.doctor_id)
+        patient = db.session.get(Patient,a.patient_id)
 
         result.append({
 
@@ -1233,11 +1174,12 @@ def get_appointments():
 
 
 
-# DELETE APPOINTMENT
+# API /DELETE APPOINTMENT-----------------------------------------------------
 
 @app.route('/api/appointments/<int:appointment_id>', methods=['DELETE'])
 def delete_appointment(appointment_id):
-    appointment = Appointment.query.get(appointment_id)
+
+    appointment = db.session.get(Appointment,appointment_id)
 
     if not appointment:
         return jsonify({"message": "Attenzione!Prenotazione non trovata"}), 404
@@ -1256,7 +1198,15 @@ def delete_appointment(appointment_id):
 
 
 
-#PATIENT EXIST-FISCAL CODE
+
+
+
+
+
+
+
+
+#API /PATIENT EXIST-FISCAL CODE-----------------------
 
 @app.route(
     "/api/patient-exists/<fiscal_code>",
@@ -1279,7 +1229,7 @@ def patient_exists(fiscal_code):
 
 
 
-# SEARCH APPOINTMENTS BY FISCAL CODE
+# API /SEARCH APPOINTMENTS BY FISCAL CODE---------------------------
 
 @app.route('/api/appointments/fiscal/<fiscal_code>',methods=['GET'])
 def get_appointments_by_fiscal_code(
@@ -1297,17 +1247,15 @@ def get_appointments_by_fiscal_code(
     }), 404
 
     appointments = Appointment.query.filter_by(
-    	patient_id=patient.id,
-    	status="Prenotata"
+    	patient_id=patient.id
     ).all()
 
     result = []
 
     for a in appointments:
 
-        doctor = Doctor.query.get(
-            a.doctor_id
-        )
+        doctor = db.session.get(Doctor,a.doctor_id)
+        
 
         result.append({
 
@@ -1333,7 +1281,10 @@ def get_appointments_by_fiscal_code(
 
             "doctor":
                 doctor.name
-                if doctor else "N/A"
+                if doctor else "N/A",
+
+            "status":
+                a.status
         })
 
     return jsonify(result)
@@ -1346,8 +1297,9 @@ def get_appointments_by_fiscal_code(
 
 
 
-#CREATE REPORT
 
+
+#API /CREATE REPORT------------------------------
 
 @app.route('/api/reports', methods=['POST'])
 def create_report():
@@ -1356,34 +1308,14 @@ def create_report():
         "appointment_id"
     )
 
-    appointment = Appointment.query.get(
-        appointment_id
-    )
+    appointment = db.session.get(Appointment,appointment_id)
 
     if not appointment:
 
         return jsonify({
-
             "message":
             "Visita non trovata"
-
         }), 404
-
-    patient_name = request.form.get(
-        "patient_name"
-    )
-
-    patient_surname = request.form.get(
-        "patient_surname"
-    )
-
-    fiscal_code = request.form.get(
-        "fiscal_code"
-    )
-
-    notes = request.form.get(
-        "notes"
-    )
 
     file = request.files.get(
         "attachment"
@@ -1391,52 +1323,38 @@ def create_report():
 
     if not file or file.filename == "":
 
-    	return jsonify({
-        	"message":
-       		"Attenzione!Obbligatorio allegare il referto"
-    	}), 400
-
-    # CONTROLLI CAMPI OBBLIGATORI
-
-    if (
-        not appointment_id or
-        not patient_name or
-        not patient_surname or
-        not fiscal_code
-    ):
-
         return jsonify({
             "message":
-            "Attenzione!Si prega di compilare tutti i campi obbligatori"
+            "Attenzione! Obbligatorio allegare il referto"
         }), 400
 
+    
+    patient = db.session.get(Patient,appointment.patient_id)
 
-    # UPLOAD FILE
+    notes = request.form.get(
+        "notes"
+    )
 
-    filename = ""
+    filename = secure_filename(
+        file.filename
+    )
 
-    if file and file.filename != "":
-
-        filename = secure_filename(
-            file.filename
+    file.save(
+        os.path.join(
+            app.config["UPLOAD_FOLDER"],
+            filename
         )
-
-        file.save(
-            os.path.join(
-                app.config["UPLOAD_FOLDER"],
-                filename
-            )
-        )
+    )
 
     report = MedicalReport(
 
-        appointment_id=appointment_id,
+        appointment_id=appointment.id,
 
-        name=patient_name,
+        name=patient.name,
 
-        surname=patient_surname,
+        surname=patient.surname,
 
-        fiscal_code=fiscal_code,
+        fiscal_code=patient.fiscal_code,
 
         attachment=filename,
 
@@ -1450,9 +1368,8 @@ def create_report():
     db.session.commit()
 
     return jsonify({
-
         "message":
-        "Referto creato con successo"
+        "REFERTO CREATO CON SUCCESSO!"
     })
 
 
@@ -1463,7 +1380,7 @@ def create_report():
 
 
 
-# GET REPORTS
+# API /GET REPORTS--------------------------------
 
 @app.route('/api/reports', methods=['GET'])
 def get_reports():
@@ -1529,7 +1446,7 @@ def get_reports():
 
 
 
-#REPORTS BY DOCTOR
+# API /REPORTS BY DOCTOR--------------------------
 
 @app.route(
     '/api/reports-by-doctor/<doctor>',
@@ -1561,12 +1478,12 @@ def get_reports_by_doctor(doctor):
         if r.appointment_id not in appointment_ids:
             continue
 
-        appointment = Appointment.query.get(
-            r.appointment_id
-        )
+        appointment = db.session.get(Appointment,r.appointment_id)
 
-        patient = Patient.query.get(
-            appointment.patient_id
+        
+        patient = db.session.get(
+           Patient,
+           appointment.patient_id
         ) if appointment else None
 
         result.append({
@@ -1606,11 +1523,16 @@ def get_reports_by_doctor(doctor):
 
 
 
-# INITIALIZATION DB + DATI DI DEFAULT
 
-CONFIG_FILE = "config_medici.xlsx"
+
+
+# INITIALIZATION DB + DATI DI DEFAULT----------------------------
+
+CONFIG_FILE = "turni_medici.xlsx"
 
 try:
+
+    #LETTURA DATI DAL FILE EXCEL
 
     SPECIALIZZAZIONI = pd.read_excel(
         CONFIG_FILE,
@@ -1662,6 +1584,9 @@ with app.app_context():
             )
 
         db.session.commit()
+
+
+#AVVIO SERVER FLASK
 
 
 if __name__ == "__main__":
