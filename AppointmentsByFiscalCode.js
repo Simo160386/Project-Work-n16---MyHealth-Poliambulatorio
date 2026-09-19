@@ -9,7 +9,6 @@ window.onload = function () {
 
 
 
-
 // LOAD APPOINTMENTS
 
 function loadAppointments() {

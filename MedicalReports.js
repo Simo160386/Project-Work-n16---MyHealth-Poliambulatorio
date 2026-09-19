@@ -12,9 +12,6 @@ window.onload = function () {
 
 
 
-
-
-
 function loadDoctorAppointments() {
 
     const doctorName =

@@ -1,7 +1,7 @@
 
 
 
-// LOGIN STAFF
+//          LOGIN STAFF
 
 function loginStaff() {
 
@@ -15,7 +15,7 @@ function loginStaff() {
 
 
 
-// LOGIN DOCTOR
+//          LOGIN DOCTOR
 
 function loginDoctor() {
 
@@ -58,7 +58,7 @@ function loginDoctor() {
 
 
 
-// LOGIN USER
+//           LOGIN USER
 
 function loginUser(username,password) {
 

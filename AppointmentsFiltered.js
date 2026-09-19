@@ -9,7 +9,6 @@ window.onload = function () {
 
 
 
-
 // LOAD FILTERED APPOINTMENTS
 
 function loadFilteredAppointments() {

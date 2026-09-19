@@ -1,3 +1,4 @@
+
 #IMPORT LIBRERIE
 
 from flask import Flask, request, jsonify
@@ -27,7 +28,6 @@ db = SQLAlchemy(app)
 UPLOAD_FOLDER = "uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
 
 
 
